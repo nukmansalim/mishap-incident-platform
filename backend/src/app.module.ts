@@ -4,6 +4,8 @@ import { join } from 'path';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { SpaController } from './spa.controller';
+import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [
@@ -14,6 +16,8 @@ import { SpaController } from './spa.controller';
         index: false,
       },
     }),
+    PrismaModule,
+    AuthModule,
   ],
   controllers: [AppController, SpaController],
   providers: [AppService],

@@ -1,0 +1,134 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id           String  @id @default(uuid())
+  name         String?
+  email        String  @unique
+  passwordHash String? @map("password_hash")
+
+  githubId  String? @unique @map("github_id")
+  avatarUrl String? @map("avatar_url")
+
+  status UserStatus @default(active)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  organizationMembers OrganizationMember[]
+  teamMembers         TeamMember[]
+
+  @@map("users")
+}
+
+model Organization {
+  id     String             @id @default(uuid())
+  name   String
+  slug   String             @unique
+  status OrganizationStatus @default(active)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  members OrganizationMember[]
+  teams   Team[]
+
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+  userId         String @map("user_id")
+
+  role OrganizationRole @default(member)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([organizationId])
+  @@index([userId])
+  @@map("organization_members")
+}
+
+model Team {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  name        String
+  description String?
+  status      TeamStatus @default(active)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  members      TeamMember[]
+
+  // nanti kalau sudah bikin model Service dan Schedule:
+  // services    Service[]
+  // schedules   Schedule[]
+
+  @@index([organizationId])
+  @@map("teams")
+}
+
+model TeamMember {
+  id     String @id @default(uuid())
+  teamId String @map("team_id")
+  userId String @map("user_id")
+
+  role TeamRole @default(viewer)
+
+  createdAt DateTime @default(now()) @map("created_at")
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([teamId])
+  @@index([userId])
+  @@map("team_members")
+}
+
+enum UserStatus {
+  active
+  inactive
+  suspended
+}
+
+enum OrganizationStatus {
+  active
+  inactive
+}
+
+enum TeamStatus {
+  active
+  inactive
+}
+
+enum OrganizationRole {
+  owner
+  manager
+  member
+}
+
+enum TeamRole {
+  manager
+  responder
+  viewer
+}
