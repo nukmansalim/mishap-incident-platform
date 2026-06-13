@@ -8,15 +8,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 
 @Module({
-  imports: [PassportModule.register({}),
-  JwtModule.register({
-    secret: process.env.JWT_SECRET,
-    signOptions: { expiresIn: '15m' },
-  }),
-    PrismaModule],
+  imports: [
+    PassportModule.register({}),
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: '15m' },
+    }),
+    PrismaModule,
+  ],
   controllers: [AuthController],
-  providers: [AuthService,
-    JwtStrategy,
-    GithubStrategy]
+  providers: [AuthService, JwtStrategy, GithubStrategy],
 })
-export class AuthModule { }
+export class AuthModule {}
