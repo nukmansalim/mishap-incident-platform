@@ -76,13 +76,13 @@ enum InviteStatus {
 }
 
 model Invitation {
-  id             String       @id @default(uuid())
+  id             String           @id @default(uuid())
   email          String
   organizationId String
   invitedById    String
-  token          String       @unique
-  status         InviteStatus @default(PENDING)
-  role           String? // optional, bisa diisi 'member' untuk sekarang
+  token          String           @unique
+  status         InviteStatus     @default(PENDING)
+  role           OrganizationRole
 
   expiresAt  DateTime
   acceptedAt DateTime?

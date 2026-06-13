@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Invitation, InviteStatus } from 'generated/prisma/client';
-import { User } from 'generated/prisma/client';
+import { User, OrganizationRole } from 'generated/prisma/client';
 
 @Injectable()
 export class InvitationRepository {
@@ -28,7 +28,7 @@ export class InvitationRepository {
         email: string;
         orgId: string;
         invitedById: string;
-        role: string;
+        role: OrganizationRole;
         expiresAt: Date;
     }): Promise<Invitation> {
         const { email, orgId, invitedById, role, expiresAt } = params;
@@ -62,11 +62,13 @@ export class InvitationRepository {
             },
         });
     }
+
     async findUserByEmail(email: string): Promise<User | null> {
         return this.prisma.user.findUnique({
             where: { email },
         });
     }
+
     async isUserMemberOfOrgByEmail(email: string, orgId: string): Promise<boolean> {
         const user = await this.findUserByEmail(email);
         if (!user) return false;
@@ -79,5 +81,40 @@ export class InvitationRepository {
         });
 
         return !!membership;
+    }
+
+    async findByToken(token: string): Promise<Invitation | null> {
+        return this.prisma.invitation.findUnique({ where: { token } });
+    }
+    async acceptInvitationTx(data: {
+        userId: string;
+        organizationId: string;
+        role: OrganizationRole;
+        invitationId: string;
+    }) {
+        return this.prisma.$transaction(async (tx) => {
+            await tx.organizationMember.create({
+                data: {
+                    userId: data.userId,
+                    organizationId: data.organizationId,
+                    role: data.role,
+                },
+            });
+
+            return tx.invitation.update({
+                where: { id: data.invitationId },
+                data: {
+                    status: 'ACCEPTED',
+                    acceptedAt: new Date(),
+                    userId: data.userId,
+                },
+            });
+        });
+    }
+    async updateStatus(id: string, status: InviteStatus) {
+        return this.prisma.invitation.update({
+            where: { id },
+            data: { status },
+        });
     }
 }

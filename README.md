@@ -36,7 +36,7 @@ Current completed scope:
 ```txt
 Phase 1: GitHub OAuth Login + User Persistence + Basic JWT Auth
 Phase 2: Organization Registration (core)
-Phase 3: Invitation Flow (create invitation endpoint, repository + validation)
+Phase 3: Invitation Flow (create, validate token, accept)
 ```
 
 Implemented:
@@ -56,18 +56,36 @@ Implemented:
 - Invitation model (`Invitation`) with:
   - `email`, `organizationId`, `invitedById`, `token`, `status`, `role`, `expiresAt`, `acceptedAt`, timestamps  
   - relations to `Organization`, `invitedBy` user, and optional `user` (who eventually accepts)  
-  - composite unique key on `(email, organizationId)` untuk mencegah duplikasi undangan per org  
-- Invitation module with controller, service, dan repository terpisah dari organization module  
-- `POST /organizations/:orgId/invitations` endpoint dengan:
+  - composite unique key on `(email, organizationId)` to prevent duplicate invitations per org  
+- Invitation module with controller, service, and repository separated from organization module  
+- `POST /organizations/:orgId/invitations` endpoint with:
   - JWT auth guard  
-  - repository pattern untuk semua query Prisma  
-  - validasi:
-    - hanya `owner` / `admin` yang boleh mengundang  
-    - user yang bukan member org mendapatkan 404 (“Organization not found or not a member”)  
-    - user dengan role `member` mendapatkan 403  
-    - jika sudah ada `Invitation` PENDING untuk `(email, organizationId)` → 409  
-    - jika user dengan email itu sudah menjadi member organisasi → 409  
-  - invitation dibuat atau di-reset menggunakan `upsert` dengan token baru dan expiry date  
+  - repository pattern for all Prisma queries  
+  - validation:
+    - only `owner` / `admin` can invite  
+    - non-member users get `404` (“Organization not found or not a member”)  
+    - members with role `member` get `403`  
+    - if there is already a `PENDING` `Invitation` for `(email, organizationId)` → `409`  
+    - if a user with that email is already a member → `409`  
+  - invitation is created or reset using `upsert` with a new token and expiry date  
+- `GET /invitations/:token` endpoint (public) for invitation token validation with:
+  - looks up `Invitation` by unique `token`  
+  - returns `404` if token not found  
+  - if `status` is not `PENDING` or token has expired, updates status to `EXPIRED` (if needed) and returns an error (e.g. `410 Gone`)  
+  - on success, returns invitation metadata (email, organizationId, role, expiresAt, status)  
+- `POST /organizations/:orgId/invitations/:token/accept` endpoint with:
+  - JWT auth guard using `JwtStrategy` (access token issued after GitHub login)  
+  - custom `@CurrentUser()` decorator that reads `request.user` populated by `JwtStrategy`  
+  - server-side checks:
+    - invitation loaded via `validateToken(token)`  
+    - `invitation.email` must match `currentUser.email` (case-insensitive), otherwise `403`  
+    - user must not already be a member of the organization, otherwise `409`  
+  - runs inside a Prisma transaction:
+    - creates `OrganizationMember` for `(userId, organizationId)` with `role` from invitation  
+    - updates invitation to `status = ACCEPTED`, sets `acceptedAt`, and links `userId`  
+- Updated JWT payload to include user email:
+  - when logging in with GitHub, backend now signs JWT with payload containing `sub` (user ID) and `email`  
+  - `JwtStrategy.validate` returns `{ id, email, name? }`, making `request.user.email` available for multi-tenant checks  
 
 Not implemented yet:
 
@@ -75,8 +93,6 @@ Not implemented yet:
 - Logout/token revocation strategy  
 - Fully generalized role-aware authorization beyond current checks  
 - Organization-scoped access control for all modules  
-- Invitation link validation endpoint (`GET /invitations/:token`)  
-- Invitation acceptance endpoint (user joins organization after accepting)  
 - Team membership  
 - Service registry  
 - Alert ingestion  
@@ -113,7 +129,9 @@ mishap-incident-platform/
 │   │   │   ├── auth.module.ts
 │   │   │   ├── auth.service.ts
 │   │   │   ├── github.strategy.ts
-│   │   │   ├── password.service.ts
+│   │   │   ├── jwt.strategy.ts
+│   │   │   ├── jwt-auth.guard.ts
+│   │   │   ├── current-user.decorator.ts
 │   │   │   └── session.service.ts
 │   │   ├── organization/
 │   │   │   ├── organization.controller.ts
@@ -162,6 +180,7 @@ DATABASE_URL="postgresql://postgres:your_password@localhost:5432/incident_platfo
 GITHUB_CLIENT_ID="your_github_client_id"
 GITHUB_CLIENT_SECRET="your_github_client_secret"
 GITHUB_CALLBACK_URL="http://localhost:3000/auth/github/callback"
+JWT_SECRET="your_jwt_secret_here"
 ```
 
 Make sure the PostgreSQL database exists:
@@ -232,7 +251,7 @@ The browser should redirect to GitHub authorization.
 GET /auth/github/callback
 ```
 
-After successful GitHub authorization, the backend receives the GitHub profile and returns a JSON response.
+After successful GitHub authorization, the backend receives the GitHub profile, ensures the user exists in the database, and issues a JWT access token.
 
 Expected output example:
 
@@ -249,6 +268,17 @@ Expected output example:
     "createdAt": "2026-06-12T00:00:00.000Z",
     "updatedAt": "2026-06-12T00:00:00.000Z"
   }
+}
+```
+
+The JWT payload now includes at least:
+
+```json
+{
+  "sub": "user_uuid_from_database",
+  "email": "user@example.com",
+  "iat": 1781377504,
+  "exp": 1781378404
 }
 ```
 
@@ -279,11 +309,13 @@ import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { InvitationModule } from './invitation/invitation.module';
+import { OrganizationModule } from './organization/organization.module';
 
 @Module({
   imports: [
     PrismaModule,
     AuthModule,
+    OrganizationModule,
     InvitationModule,
   ],
   controllers: [AppController],
@@ -306,9 +338,9 @@ User opens /auth/github
 → GitHub redirects to /auth/github/callback
 → GithubStrategy receives GitHub profile
 → Backend checks or creates user in PostgreSQL through Prisma
-→ Backend issues JWT access token
+→ Backend issues JWT access token (with sub + email)
 → Callback returns accessToken + user
-→ Client uses JWT to access protected endpoints
+→ Client uses JWT to access protected endpoints (AuthGuard('jwt'))
 ```
 
 ***
@@ -354,9 +386,9 @@ Constraints and relations:
 
 ***
 
-## Invitation API (Phase 3 – Create Invitation)
+## Invitation API (Phase 3 – Full Flow)
 
-### Endpoint
+### Create Invitation
 
 ```txt
 POST /organizations/:orgId/invitations
@@ -364,24 +396,16 @@ Authorization: Bearer <JWT>
 Content-Type: application/json
 ```
 
-### Request body
+Request body:
 
 ```json
 {
   "email": "invitee@example.com",
-  "role": "member"  // optional, currently defaults to "member"
+  "role": "member"
 }
 ```
 
-### Successful response
-
-Status:
-
-```txt
-201 Created
-```
-
-Example body:
+Response (`201 Created`):
 
 ```json
 {
@@ -396,27 +420,33 @@ Example body:
 }
 ```
 
-In development, the `token` may be returned to simplify manual testing. In production, the token is expected to be delivered only via email.
+### Validate Invitation Token
 
-### Error conditions
+```txt
+GET /invitations/:token
+```
 
-- `401 Unauthorized`  
-  - no or invalid JWT.  
+- Public endpoint (no JWT required).  
+- Returns `200` with invitation data if token is valid and not expired.  
+- Returns `404` if token does not exist.  
+- Returns an error (e.g. `410 Gone`) if invitation is no longer valid (`EXPIRED`, `ACCEPTED`, `REVOKED`, or expired `expiresAt`).
 
-- `404 Not Found`  
-  - the authenticated user is not a member of the organization or the organization is not visible to them.  
+### Accept Invitation
 
-- `403 Forbidden`  
-  - the authenticated user is a member but does not have `owner` or `admin` role:
-  - message: `"Only owner/admin can invite members to this organization"`  
+```txt
+POST /organizations/:orgId/invitations/:token/accept
+Authorization: Bearer <JWT>
+```
 
-- `409 Conflict`  
-  - an active PENDING invitation already exists for the same `(email, organizationId)`:
-    - message: `"An active invitation already exists for this email"`  
-  - the user associated with this email is already a member of the organization:
-    - message: `"User is already a member of this organization"`
+Behavior:
 
-All database access for invitations and membership checks is done via an `InvitationRepository` so the service layer remains focused on business rules rather than Prisma queries.
+- Loads invitation by `token` and validates status/expiry.  
+- Compares `invitation.email` with `currentUser.email` from JWT (case-insensitive).  
+- If emails do not match → `403 Forbidden` with `"This invitation is not for your account"`.  
+- If user is already a member of the organization → `409 Conflict`.  
+- Otherwise:
+  - Creates `OrganizationMember` for the authenticated user (`userId`) in the invitation’s `organizationId` with the invitation `role`.  
+  - Updates invitation to `status = ACCEPTED`, sets `acceptedAt`, and links `userId`.  
 
 ***
 
@@ -474,7 +504,7 @@ viewer
 
 ### Phase 1 — Auth and User Persistence
 
-Status: Mostly completed.
+Status: Completed
 
 Scope:
 
@@ -482,10 +512,11 @@ Scope:
 - User persistence in PostgreSQL  
 - Prisma integration  
 - Auth module structure  
+- Basic JWT issuance after GitHub callback  
 
 ### Phase 2 — Organization Registration
 
-Status: In progress
+Status: Completed
 
 Scope:
 
@@ -493,10 +524,11 @@ Scope:
 - Organization membership model  
 - Create organization endpoint  
 - List current user organizations endpoint  
+- Owner membership creation on organization create  
 
 ### Phase 3 — Invitation Flow
 
-Status: In progress (create invitation implemented)
+Status: In progress (core flow implemented)
 
 Scope:
 
@@ -504,13 +536,28 @@ Scope:
 - Pending invitation model with expiry and status  
 - Server-side validation:
   - only org owners/admins can invite  
-  - reject invites for emails with existing PENDING invitation in the same org  
+  - reject invites for emails with existing `PENDING` invitation in the same org  
   - reject invites if the target user (by email) is already a member of the org  
-- Next steps (not yet implemented):
-  - invitation link validation endpoint (`GET /invitations/:token`)  
-  - invitation acceptance endpoint (`POST /organizations/:orgId/invitations/accept/:token`)  
+- Implemented endpoints:
+  - `POST /organizations/:orgId/invitations`  
+  - `GET /invitations/:token`  
+  - `POST /organizations/:orgId/invitations/:token/accept`  
+- Manual tests done so far:
+  - Happy path acceptance:
+    - owner/admin creates invitation  
+    - invited user logs in via GitHub, receives JWT with email  
+    - invited user calls accept endpoint and becomes organization member  
+  - Negative case:
+    - user already a member of organization cannot be re-invited / re-accepted (409)  
+- Remaining tests to cover:
+  - accept with mismatched email (should return 403)  
+  - accept with expired token  
+  - accept twice with the same token  
+  - validate expired or already-accepted tokens via `GET /invitations/:token`  
 
 ### Phase 4 — Teams and Service Ownership
+
+Status: Not started
 
 Scope:
 
@@ -568,7 +615,7 @@ Scope:
 npx prisma studio
 ```
 
-Check that the `users`, `organizations`, `organization_members`, and `Invitation` tables exist and contain expected data.
+Check that the `users`, `organizations`, `organization_members`, and `"Invitation"` tables exist and contain expected data.
 
 ### GitHub Login
 
@@ -583,7 +630,7 @@ Expected result:
 ```txt
 GitHub authorization page
 → callback route
-→ JSON user response
+→ JSON user response with accessToken + user
 ```
 
 ### Duplicate User Check
@@ -625,7 +672,7 @@ curl -H "Authorization: Bearer <ACCESS_TOKEN>" http://localhost:3000/auth/me
 Expected result:
 
 ```txt
-200 OK with authenticated user payload
+200 OK with authenticated user payload (id, email, etc.)
 ```
 
 Without token:
@@ -634,7 +681,7 @@ Without token:
 401 Unauthorized
 ```
 
-### Manual Test Coverage Phase 2 and 3
+### Manual Test Coverage Phases 2 and 3
 
 Organization and invitation endpoints have been manually tested for:
 
@@ -651,6 +698,9 @@ Organization and invitation endpoints have been manually tested for:
   - 403 for members without owner/admin role  
   - 409 when an active invitation already exists for the same email in the same organization  
   - 409 when the invited email already belongs to an existing organization member  
+- `POST /organizations/:orgId/invitations/:token/accept`:
+  - happy path: invited user with matching email can accept and becomes member  
+  - conflict when user is already a member (depending on implementation)  
 
 ***
 
@@ -659,3 +709,5 @@ Organization and invitation endpoints have been manually tested for:
 Mishap Incident Platform is a multi-tenant incident management platform that receives alerts, deduplicates them, creates incidents, routes them based on service ownership, calculates the current on-call responder, runs escalation policies, sends notifications, tracks incident lifecycle, and preserves a complete audit trail.
 
 It is designed to demonstrate serious backend engineering concepts, including event-driven architecture, background job processing, state machine design, webhook security, idempotency, multi-tenant authorization, retry handling, and auditability.
+
+***
