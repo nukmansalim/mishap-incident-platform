@@ -280,7 +280,19 @@ User opens /auth/github
 → Client uses JWT to access protected endpoints
 ```
 
-At this checkpoint, the goal is only to confirm that login works and the user can exist in the database. Role assignment and organization ownership will be added in a later phase.
+## Current Data Model
+
+### Organization
+Represents a tenant/account in the system.
+
+### OrganizationMember
+Connects users to organizations and stores organization-level roles.
+
+Roles:
+- owner
+- admin
+- member
+- viewer
 
 ---
 
@@ -333,7 +345,7 @@ viewer
 
 ---
 
-## Future Development Phases
+## Development Phases
 
 ### Phase 1 — Auth and User Persistence
 
@@ -348,11 +360,14 @@ Scope:
 
 ### Phase 2 — Organization Registration
 
+Status: In progress 
+
 Scope:
 
-- Create organization
-- Attach authenticated user as organization owner
-- Add validation for development vs production owner assignment
+- Organization model
+- Organization membership model
+- Create organization endpoint
+- List current user organizations endpoint
 
 ### Phase 3 — Invitation Flow
 
@@ -484,6 +499,16 @@ Without token:
 ```txt
 401 Unauthorized
 ```
+
+## Manual Test Coverage Phase 2
+
+Organization endpoints have been manually tested for:
+
+- unauthorized access returns 401
+- valid organization creation
+- owner membership creation
+- organization listing for authenticated user
+- invalid payload rejection, including empty and overlong names
 
 ## Long-Term Product Description
 
