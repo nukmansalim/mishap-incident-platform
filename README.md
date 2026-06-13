@@ -34,11 +34,12 @@ Monitoring tool sends alert
 Current completed scope:
 
 ```txt
-Phase 1: GitHub OAuth Login + User Database
+Phase 1: Phase 1: GitHub OAuth Login + User Persistence + Basic JWT Auth
 ```
 
 Implemented:
 
+- JWT access token is issued after successful GitHub callback
 - NestJS backend setup
 - PostgreSQL connection through Prisma
 - Prisma migration successfully creates database tables
@@ -49,7 +50,10 @@ Implemented:
 
 Not implemented yet:
 
-- JWT/session finalization
+- Refresh token flow
+- Logout/token revocation strategy
+- Role-aware authorization
+- Organization-scoped access control
 - Organization registration
 - Owner assignment validation
 - Invite flow
@@ -69,7 +73,7 @@ Frontend: React
 Backend: NestJS
 Database: PostgreSQL
 ORM: Prisma
-Authentication: Passport + GitHub OAuth
+Authentication: Passport + GitHub OAuth + JWT
 Future Queue: Redis + BullMQ
 Future Deployment: VPS / Docker / Coolify
 ```
@@ -205,14 +209,17 @@ Expected output example:
 
 ```json
 {
-  "id": "user_uuid_from_database",
-  "name": "github_username",
-  "email": "user@example.com",
-  "githubId": "123456789",
-  "avatarUrl": "https://avatars.githubusercontent.com/...",
-  "status": "active",
-  "createdAt": "2026-06-12T00:00:00.000Z",
-  "updatedAt": "2026-06-12T00:00:00.000Z"
+  "accessToken": "jwt_access_token_here",
+  "user": {
+    "id": "user_uuid_from_database",
+    "name": "github_username",
+    "email": "user@example.com",
+    "githubId": "123456789",
+    "avatarUrl": "https://avatars.githubusercontent.com/...",
+    "status": "active",
+    "createdAt": "2026-06-12T00:00:00.000Z",
+    "updatedAt": "2026-06-12T00:00:00.000Z"
+  }
 }
 ```
 
@@ -268,7 +275,9 @@ User opens /auth/github
 → GitHub redirects to /auth/github/callback
 → GithubStrategy receives GitHub profile
 → Backend checks or creates user in PostgreSQL through Prisma
-→ Callback returns user JSON
+→ Backend issues JWT access token
+→ Callback returns accessToken + user
+→ Client uses JWT to access protected endpoints
 ```
 
 At this checkpoint, the goal is only to confirm that login works and the user can exist in the database. Role assignment and organization ownership will be added in a later phase.
@@ -455,6 +464,26 @@ SELECT * FROM users;
 ```
 
 ---
+
+### JWT Protected Route
+
+Use the access token returned by the callback:
+
+```bash
+curl -H "Authorization: Bearer <ACCESS_TOKEN>" http://localhost:3000/auth/me
+```
+
+Expected result:
+
+```txt
+200 OK with authenticated user payload
+```
+
+Without token:
+
+```txt
+401 Unauthorized
+```
 
 ## Long-Term Product Description
 
