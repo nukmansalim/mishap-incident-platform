@@ -1,9 +1,12 @@
 import { Injectable } from "@nestjs/common";
+import { JwtService } from "@nestjs/jwt";
 import { PrismaService } from "src/prisma/prisma.service";
 
 @Injectable()
 export class AuthService {
-    constructor(private prisma: PrismaService) { }
+    constructor(private prisma: PrismaService,
+        private jwtService: JwtService
+    ) { }
 
     async validateGithubUser(profile: any) {
         const githubId = profile.id;
@@ -27,5 +30,9 @@ export class AuthService {
         }
 
         return user;
+    }
+    async generateAccessToken(user: { id: string }) {
+        const payload = { sub: user.id }
+        return this.jwtService.sign(payload)
     }
 }

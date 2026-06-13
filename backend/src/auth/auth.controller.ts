@@ -1,19 +1,35 @@
-import { Controller, Get, Req, UseGuards, Res } from '@nestjs/common';
+import { Controller, Get, Req, Res, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
-import { Response, Request } from 'express';
+import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
+    constructor(private readonly authService: AuthService) { }
+
     @Get('github')
     @UseGuards(AuthGuard('github'))
     async githubLogin() {
+
     }
 
     @Get('github/callback')
     @UseGuards(AuthGuard('github'))
-    async githubLoginCallback(@Req() req: any, @Res() res: any) {
-        req.login(req.user, () => {
-            return res.json(req.user);
+    async githubCallback(@Req() req, @Res() res) {
+        const user = req.user;
+        const accessToken = await this.authService.generateAccessToken(user);
+
+        return res.json({
+            accessToken,
+            user,
         });
+    }
+    @Get('me')
+    @UseGuards(JwtAuthGuard)
+    getMe(@Req() req) {
+        return {
+            authenticated: true,
+            user: req.user,
+        };
     }
 }
