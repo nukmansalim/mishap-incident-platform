@@ -3,12 +3,16 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-github2';
 import { config } from 'dotenv';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { AuthService } from './auth.service';
 
 config(); // load .env
 
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
-    constructor(private readonly prisma: PrismaService) {
+    constructor(
+        private readonly prisma: PrismaService,
+        private readonly authService: AuthService
+    ) {
         super({
             clientID: process.env.GITHUB_OAUTH_CLIENT_ID!,
             clientSecret: process.env.GITHUB_OAUTH_CLIENT_SECRET!,
@@ -23,25 +27,11 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
         profile: Profile,
         done: Function,
     ) {
-        const { id: githubId, username, emails, photos } = profile;
-        const email = emails && emails.length ? emails[0].value : null;
-
-        if (!email) return done(new Error('Email not available from GitHub'), null);
-
-        // cek user di database
-        let user = await this.prisma.user.findUnique({ where: { githubId } });
-
-        if (!user) {
-            user = await this.prisma.user.create({
-                data: {
-                    name: username,
-                    email,
-                    githubId,
-                    avatarUrl: photos && photos.length ? photos[0].value : null,
-                },
-            });
+        try {
+            const user = await this.authService.validateGithubUser(profile);
+            return done(null, user);
+        } catch (err) {
+            return done(err, null);
         }
-
-        done(null, user);
     }
 }

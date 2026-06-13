@@ -29,6 +29,9 @@ model User {
   organizationMembers OrganizationMember[]
   teamMembers         TeamMember[]
 
+  hashedRefreshToken String?
+  refreshTokenExp    DateTime?
+
   @@map("users")
 }
 

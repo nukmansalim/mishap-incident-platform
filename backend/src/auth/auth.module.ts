@@ -8,8 +8,11 @@ import { GithubStrategy } from './github.strategy';
 import { PrismaModule } from 'src/prisma/prisma.module';
 
 @Module({
-  imports: [PassportModule, AuthModule, PrismaModule],
+  imports: [PassportModule, PrismaModule],
   controllers: [AuthController],
-  providers: [AuthService, SessionService, PasswordService, GithubStrategy]
+  providers: [AuthService,
+    SessionService,
+    PasswordService,
+    GithubStrategy]
 })
 export class AuthModule { }
