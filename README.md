@@ -1,6 +1,6 @@
-# Mishap Incident Platform
+# Mishap 
 
-Mishap Incident Platform is a backend-heavy incident management and on-call platform inspired by systems such as PagerDuty. The platform is designed to receive alerts from external monitoring systems, normalize them, deduplicate them, create incidents, route incidents to the correct responder, run escalation policies, and preserve a complete operational history.
+Mishap is a backend-heavy incident management and on-call platform inspired by systems such as PagerDuty. The platform is designed to receive alerts from external monitoring systems, normalize them, deduplicate them, create incidents, route incidents to the correct responder, run escalation policies, and preserve a complete operational history.
 
 At the current development checkpoint, the project is focused on authentication and user persistence. GitHub OAuth login is already connected to the NestJS backend, PostgreSQL, and Prisma. Organization ownership, invite flow, team membership, incident routing, escalation, and notification workers will be implemented in later phases.
 
