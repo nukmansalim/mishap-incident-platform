@@ -1,6 +1,6 @@
 import { IsNotEmpty, IsString, MaxLength } from 'class-validator';
 
-export class CreateOrganizationDTO {
+export class CreateOrganizationDto {
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)

@@ -1,12 +1,12 @@
 
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { CreateOrganizationDTO } from 'src/dto/create-organization.dto';
+import { CreateOrganizationDto } from './dto/create-organization.dto';
 
 @Injectable()
 export class OrganizationRepository {
     constructor(private prisma: PrismaService) { }
-    async create(userId: string, dto: CreateOrganizationDTO) {
+    async create(userId: string, dto: CreateOrganizationDto) {
         return this.prisma.$transaction(async (tx) => {
             const organization = await tx.organization.create({
                 data: {
@@ -39,6 +39,35 @@ export class OrganizationRepository {
             },
         });
         return findOrganizations
+    }
+    findMembership(orgId: string, userId: string) {
+        return this.prisma.organizationMember.findUnique({
+            where: {
+                organizationId_userId: {
+                    organizationId: orgId,
+                    userId,
+                },
+            },
+        });
+    }
+    findMembersByOrganizationId(orgId: string) {
+        return this.prisma.organizationMember.findMany({
+            where: { organizationId: orgId },
+            include: {
+                user: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        avatarUrl: true,
+                        status: true,
+                    },
+                },
+            },
+            orderBy: {
+                createdAt: 'asc',
+            },
+        });
     }
 }
 
