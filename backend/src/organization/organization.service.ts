@@ -1,41 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { CreateOrganizationDTO } from 'src/dto/create-organization.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { OrganizationRepository } from './organization.repository';
 
 @Injectable()
 export class OrganizationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly organizationRepo: OrganizationRepository) { }
   async createOrganization(userId: string, dto: CreateOrganizationDTO) {
-    return this.prisma.$transaction(async (tx) => {
-      const organization = await tx.organization.create({
-        data: {
-          name: dto.name,
-        },
-      });
-
-      const membership = await tx.organizationMember.create({
-        data: {
-          organizationId: organization.id,
-          userId,
-          role: 'owner',
-        },
-      });
-
-      return { organization, membership };
-    });
+    return this.organizationRepo.create(userId, dto)
   }
   async getMyOrganizations(userId: string) {
-    const memberships = await this.prisma.organizationMember.findMany({
-      where: {
-        userId,
-      },
-      include: {
-        organization: true,
-      },
-      orderBy: {
-        createdAt: 'asc',
-      },
-    });
+    const memberships = await this.organizationRepo.findOrgByUserId(userId)
 
     return memberships.map((membership) => ({
       organizationId: membership.organization.id,

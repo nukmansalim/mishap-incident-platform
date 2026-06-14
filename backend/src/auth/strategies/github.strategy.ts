@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, Profile } from 'passport-github2';
 import { config } from 'dotenv';
-import { AuthService } from './auth.service';
+import { AuthService } from '../auth.service';
 
 config(); // load .env
 
