@@ -95,7 +95,7 @@ export class AuthService {
         },
       });
     }
-
+    console.log(user)
     return user;
   }
   async generateAccessToken(user: { id?: string; email: string; name?: string }) {

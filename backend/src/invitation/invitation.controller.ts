@@ -14,14 +14,15 @@ import { CreateInvitationDto } from 'src/dto/create-invitation.dto';
 import { OrganizationRole, User } from 'generated/prisma/client';
 import { CurrentUser } from 'src/decorators/current-user';
 import { OrgRoles } from 'src/decorators/org-role';
+import { OrgRoleGuard } from 'src/auth/guards/org-roles.guard';
 
 @Controller('organizations/:orgId/invitations')
 export class InvitationController {
   constructor(private readonly invitationService: InvitationService) { }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
-  @OrgRoles('owner', 'admin')
+  @UseGuards(JwtAuthGuard, OrgRoleGuard)
+  @OrgRoles('owner', 'manager')
   async create(
     @Param('orgId') orgId: string,
     @Body() body: CreateInvitationDto,

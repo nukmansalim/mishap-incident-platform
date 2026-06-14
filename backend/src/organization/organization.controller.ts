@@ -2,21 +2,21 @@ import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDTO } from 'src/dto/create-organization.dto';
+import { CurrentUser } from 'src/decorators/current-user';
+import { AuthenticatedUser } from 'src/auth/interfaces/authenticated-user.interface';
 
 @Controller('organizations')
 export class OrganizationController {
   constructor(private readonly organizationService: OrganizationService) { }
   @Post()
   @UseGuards(JwtAuthGuard)
-  createOrganization(@Req() req, @Body() dto: CreateOrganizationDTO) {
-    console.log(req.user.id)
-    const userId = req.user.id || req.user.userId
-    return this.organizationService.createOrganization(userId, dto);
+  createOrganization(@CurrentUser() user: AuthenticatedUser, @Body() dto: CreateOrganizationDTO) {
+    return this.organizationService.createOrganization(user.id, dto);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
-  getMyOrganizations(@Req() req) {
-    return this.organizationService.getMyOrganizations(req.user.userId);
+  getMyOrganizations(@CurrentUser() user: AuthenticatedUser) {
+    return this.organizationService.getMyOrganizations(user.id);
   }
 }
