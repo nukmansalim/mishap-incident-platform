@@ -5,11 +5,13 @@ import { CreateOrganizationDTO } from 'src/dto/create-organization.dto';
 
 @Controller('organizations')
 export class OrganizationController {
-  constructor(private readonly organizationService: OrganizationService) {}
+  constructor(private readonly organizationService: OrganizationService) { }
   @Post()
   @UseGuards(JwtAuthGuard)
   createOrganization(@Req() req, @Body() dto: CreateOrganizationDTO) {
-    return this.organizationService.createOrganization(req.user.userId, dto);
+    console.log(req.user.id)
+    const userId = req.user.id || req.user.userId
+    return this.organizationService.createOrganization(userId, dto);
   }
 
   @Get()
