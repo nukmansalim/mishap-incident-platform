@@ -8,13 +8,13 @@ import {
   Get,
   HttpCode,
 } from '@nestjs/common';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { InvitationService } from './invitation.service';
-import { CreateInvitationDto } from 'src/dto/create-invitation.dto';
+import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { OrganizationRole, User } from 'generated/prisma/client';
-import { CurrentUser } from 'src/decorators/current-user';
-import { OrgRoles } from 'src/decorators/org-role';
-import { OrgRoleGuard } from 'src/auth/guards/org-roles.guard';
+import { CurrentUser } from 'src/common/decorators/current-user';
+import { OrgRoles } from 'src/common/decorators/org-role';
+import { OrgRoleGuard } from 'src/common/guards/org-roles.guard';
 
 @Controller('organizations/:orgId/invitations')
 export class InvitationController {

@@ -5,8 +5,6 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { OrganizationModule } from './organization/organization.module';
-import { InvitationService } from './invitation/invitation.service';
-import { InvitationController } from './invitation/invitation.controller';
 import { InvitationModule } from './invitation/invitation.module';
 
 @Module({
@@ -19,7 +17,7 @@ import { InvitationModule } from './invitation/invitation.module';
     OrganizationModule,
     InvitationModule,
   ],
-  controllers: [AppController, InvitationController],
-  providers: [AppService, InvitationService],
+  controllers: [AppController],
+  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

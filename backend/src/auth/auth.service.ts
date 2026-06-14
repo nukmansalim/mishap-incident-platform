@@ -2,8 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt'
-import { RegisterDto } from 'src/dto/register.dto';
-import { loginDto } from 'src/dto/login.dto';
+import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 @Injectable()
 export class AuthService {
   constructor(
@@ -50,7 +50,7 @@ export class AuthService {
     return safeUser;
   }
 
-  async login(user: loginDto) {
+  async login(user: LoginDto) {
     let userId = user.id;
     if (!userId) {
       const dbUser = await this.prisma.user.findUnique({

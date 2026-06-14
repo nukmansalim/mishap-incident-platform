@@ -1,8 +1,8 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { OrganizationService } from './organization.service';
-import { CreateOrganizationDTO } from 'src/dto/create-organization.dto';
-import { CurrentUser } from 'src/decorators/current-user';
+import { CreateOrganizationDTO } from './dto/create-organization.dto';
+import { CurrentUser } from 'src/common/decorators/current-user';
 import { AuthenticatedUser } from 'src/auth/interfaces/authenticated-user.interface';
 
 @Controller('organizations')

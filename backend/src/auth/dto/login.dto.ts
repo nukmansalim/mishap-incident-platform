@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
-export class loginDto {
+export class LoginDto {
     @IsOptional()
     @IsString()
     id?: string;   // optional, biasanya tidak dikirim saat login
