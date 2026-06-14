@@ -29,11 +29,11 @@ export class AuthService {
     })
 
     const payload = { sub: user.id, email: user.email }
-    const accesToken = this.jwtService.sign(payload)
+    const accessToken = this.jwtService.sign(payload)
     const { passwordHash: _, ...safeUser } = user
 
     return {
-      user: safeUser, accesToken
+      user: safeUser, accessToken
     }
   }
 

@@ -8,12 +8,10 @@ import { InvitationRepository } from './invitation.repository';
 import { InviteStatus } from 'generated/prisma/client';
 import { addDays } from 'date-fns';
 import { User, OrganizationRole } from 'generated/prisma/client';
-import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class InvitationService {
-    constructor(private readonly invitationRepo: InvitationRepository,
-        private prismaService: PrismaService
+    constructor(private readonly invitationRepo: InvitationRepository
     ) { }
 
     async createInvitationForOrg(
@@ -63,7 +61,11 @@ export class InvitationService {
     }
     async validateToken(token: string) {
         const invitation = await this.invitationRepo.findByToken(token);
-        if (!invitation) throw new NotFoundException('Invitation not found');
+        if (!invitation) throw new GoneException('Invitation not found');
+        if (invitation.status === 'ACCEPTED') {
+            throw new GoneException('Invitation has ben already accepted')
+        }
+
         if (invitation.status !== 'PENDING') throw new GoneException('Invitation is no longer valid');
         if (invitation.expiresAt < new Date()) {
             await this.invitationRepo.updateStatus(invitation.id, 'EXPIRED');
@@ -77,6 +79,9 @@ export class InvitationService {
         console.log('CURRENT USER:', currentUser);
         if (invitation.email !== currentUser.email) {
             throw new ForbiddenException('This invitation is not for your account');
+        }
+        if (invitation.status === 'ACCEPTED') {
+            throw new GoneException('Invitation has ben already accepted')
         }
 
         return this.invitationRepo.acceptInvitationTx({
