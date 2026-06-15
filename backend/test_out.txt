@@ -1,0 +1,53 @@
+  console.log
+    ◇ injected env (7) from .env // tip: ⌘ override existing { override: true }
+
+      at _log (node_modules/dotenv/lib/main.js:131:11)
+
+PASS test/team.e2e-spec.ts (8.908 s)
+  Team E2E Flow
+    ✓ Team E2E – A.1. Auth – Register user A (owner candidate) (426 ms)
+    ✓ Team E2E – A.2. Auth – Login user A (105 ms)
+    ✓ Team E2E – A.3. Setup – Buat organization dan jadikan user A sebagai owner (33 ms)
+    ✓ Team E2E – A.4. Auth – Register user B (member candidate) (88 ms)
+    ✓ Team E2E – A.5. Auth – Login user B (100 ms)
+    ✓ Team E2E – A.6. Setup – Jadikan user B member di org (7 ms)
+    ✓ Team E2E – Setup – Register User C and Org 2 (180 ms)
+    ✓ Team E2E – B.7. Create team – owner sebagai member org (happy path) (20 ms)
+    ✓ Team E2E – B.8. Create team – user bukan member org (forbidden) (13 ms)
+    ✓ Team E2E – B.9. List teams – member org melihat hanya team active (53 ms)
+    ✓ Team E2E – B.10. List teams – non-member org (forbidden) (14 ms)
+    ✓ Team E2E – B.11. Get team details – team milik org dan user member org (14 ms)
+    ✓ Team E2E – B.12. Get team details – team bukan milik org (cross-tenant) (24 ms)
+    ✓ Team E2E – B.13. Update team – user member org, team milik org (25 ms)
+    ✓ Team E2E – B.14. Update team – team bukan milik org (10 ms)
+    ✓ Team E2E – B.15. Update team – user bukan member org (7 ms)
+    ✓ Team E2E – B.16. Delete team – soft delete (38 ms)
+    ✓ Team E2E – B.17. Delete team – team bukan milik org (15 ms)
+    ✓ Team E2E – B.18. Delete team – user bukan member org (6 ms)
+    ✓ Team E2E – C.19. Add member – actor & target sama-sama member org, target belum member team (happy path) (68 ms)
+    ✓ Team E2E – C.20. Add member – actor bukan member org (12 ms)
+    ✓ Team E2E – C.21. Add member – target bukan member org (22 ms)
+    ✓ Team E2E – C.22. Add member – team bukan milik org (28 ms)
+    ✓ Team E2E – C.23. Add member – target sudah member team (conflict) (25 ms)
+    ✓ Team E2E – D.24. Get members – user member org & team milik org (18 ms)
+    ✓ Team E2E – D.25. Get members – team bukan milik org (10 ms)
+    ✓ Team E2E – D.26. Get members – user bukan member org (6 ms)
+    ✓ Team E2E – E.27. Update member role – actor & target member org, target member team (happy path) (26 ms)
+    ✓ Team E2E – E.28. Update member role – target bukan member org (9 ms)
+    ✓ Team E2E – E.29. Update member role – target bukan member team (108 ms)
+    ✓ Team E2E – E.30. Update member role – team bukan milik org (11 ms)
+    ✓ Team E2E – E.31. Update member role – actor bukan member org (5 ms)
+    ✓ Team E2E – F.32. Remove member – actor & target member org, target member team (happy path) (24 ms)
+    ✓ Team E2E – F.33. Remove member – target bukan member team (14 ms)
+    ✓ Team E2E – F.34. Remove member – target bukan member org (7 ms)
+    ✓ Team E2E – F.35. Remove member – team bukan milik org (12 ms)
+    ✓ Team E2E – F.36. Remove member – actor bukan member org (6 ms)
+
+Test Suites: 1 passed, 1 total
+Tests:       37 passed, 37 total
+Snapshots:   0 total
+Time:        9.454 s
+Ran all test suites matching /test\/team.e2e-spec.ts/i.
+Jest did not exit one second after the test run has completed.
+
+'This usually means that there are asynchronous operations that weren't stopped in your tests. Consider running Jest with `--detectOpenHandles` to troubleshoot this issue.

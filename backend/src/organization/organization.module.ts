@@ -8,5 +8,6 @@ import { OrganizationRepository } from './organization.repository';
   imports: [PrismaModule],
   providers: [OrganizationService, OrganizationRepository],
   controllers: [OrganizationController],
+  exports: [OrganizationRepository],
 })
 export class OrganizationModule { }

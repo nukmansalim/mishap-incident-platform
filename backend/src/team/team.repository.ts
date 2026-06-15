@@ -15,19 +15,6 @@ export class TeamRepository {
                 name: data.name,
                 description: data.description,
             },
-            include: {
-                members: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                name: true,
-                                email: true,
-                            },
-                        },
-                    },
-                },
-            },
         });
     }
 
@@ -208,10 +195,12 @@ export class TeamRepository {
     }
 
     async findMember(teamId: string, userId: string) {
-        return this.prisma.teamMember.findFirst({
+        return this.prisma.teamMember.findUnique({
             where: {
-                teamId,
-                userId,
+                teamId_userId: {
+                    teamId,
+                    userId,
+                },
             },
         });
     }

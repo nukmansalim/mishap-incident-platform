@@ -27,6 +27,7 @@ export class TeamController {
     @Get()
     async findTeamsByOrg(@CurrentUser() user: AuthenticatedUser,
         @Param('orgId', new ParseUUIDPipe()) orgId: string) {
+        return this.teamService.getTeamsbyOrg(user, orgId);
     }
 
     @Get(':teamId')
@@ -34,8 +35,9 @@ export class TeamController {
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string
     ) {
-
+        return this.teamService.getTeamDetails(user, teamId, orgId);
     }
+
     @Patch(':teamId')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
@@ -43,16 +45,18 @@ export class TeamController {
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string,
         @Body() data: UpdateTeamDto) {
-
+        return this.teamService.updateTeam(user, teamId, orgId, data);
     }
+
     @Delete(':teamId')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
     async deleteTeam(@CurrentUser() user: AuthenticatedUser,
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string) {
-
+        return this.teamService.deleteTeam(user, teamId, orgId);
     }
+
     @Post(':teamId/members')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
@@ -60,14 +64,16 @@ export class TeamController {
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string,
         @Body() data: AddTeamMemberDto) {
-
+        return this.teamService.addMemberIntoTeam(actor, teamId, orgId, data);
     }
+
     @Get(':teamId/members')
     async getMembers(@CurrentUser() actor: AuthenticatedUser,
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string) {
-
+        return this.teamService.getMembers(actor, teamId, orgId);
     }
+
     @Patch(':teamId/members/:userId')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
@@ -76,8 +82,9 @@ export class TeamController {
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('userId', new ParseUUIDPipe()) targetUserId: string,
         @Body() dto: UpdateTeamMemberRoleDto) {
-
+        return this.teamService.updateMemberRole(actor, orgId, teamId, targetUserId, dto);
     }
+
     @Delete(':teamId/members/:userId')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
@@ -86,6 +93,6 @@ export class TeamController {
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('userId', new ParseUUIDPipe()) targetUserId: string,
     ) {
-
+        return this.teamService.removeMemberFromTeam(actor, orgId, teamId, targetUserId);
     }
 }
