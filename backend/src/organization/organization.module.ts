@@ -3,11 +3,12 @@ import { OrganizationService } from './organization.service';
 import { OrganizationController } from './organization.controller';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { OrganizationRepository } from './organization.repository';
+import { OrganizationMembershipService } from './organization-membership.service';
 
 @Module({
   imports: [PrismaModule],
-  providers: [OrganizationService, OrganizationRepository],
+  providers: [OrganizationService, OrganizationRepository, OrganizationMembershipService],
   controllers: [OrganizationController],
-  exports: [OrganizationRepository],
+  exports: [OrganizationRepository, OrganizationMembershipService],
 })
 export class OrganizationModule { }
