@@ -23,7 +23,6 @@ export class TeamRepository {
                                 id: true,
                                 name: true,
                                 email: true,
-                                avatarUrl: true,
                             },
                         },
                     },
@@ -181,6 +180,38 @@ export class TeamRepository {
                     },
                 },
                 team: true,
+            },
+        });
+    }
+    async findByIdAndOrg(teamId: string, orgId: string) {
+        return this.prisma.team.findFirst({
+            where: {
+                id: teamId,
+                organizationId: orgId,
+                status: TeamStatus.active,
+            },
+            include: {
+                members: {
+                    include: {
+                        user: {
+                            select: {
+                                id: true,
+                                name: true,
+                                email: true,
+                                avatarUrl: true,
+                            },
+                        },
+                    },
+                },
+            },
+        });
+    }
+
+    async findMember(teamId: string, userId: string) {
+        return this.prisma.teamMember.findFirst({
+            where: {
+                teamId,
+                userId,
             },
         });
     }

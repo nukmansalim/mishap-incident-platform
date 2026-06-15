@@ -8,16 +8,19 @@ import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
 import { CreateTeamDto } from './dto/create-team.dto';
 import { OrgRoleGuard } from 'src/common/guards/org-roles.guard';
 import { OrgRoles } from 'src/common/decorators/org-role';
+import { TeamService } from './team.service';
 
 @Controller('organizations/:orgId/teams')
 @UseGuards(JwtAuthGuard)
 export class TeamController {
+    constructor(private teamService: TeamService) { }
     @Post()
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
     async createTeam(@CurrentUser() user: AuthenticatedUser,
         @Param('orgId', new ParseUUIDPipe()) orgId: string,
-        @Body() data: CreateTeamDto) {
+        @Body() dto: CreateTeamDto) {
+        return this.teamService.createTeam(user, orgId, dto)
 
     }
 
