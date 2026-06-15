@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
 import { OrganizationModule } from './organization/organization.module';
 import { InvitationModule } from './invitation/invitation.module';
+import { TeamModule } from './team/team.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { InvitationModule } from './invitation/invitation.module';
     AuthModule,
     OrganizationModule,
     InvitationModule,
+    TeamModule,
   ],
   controllers: [AppController],
   providers: [AppService],
