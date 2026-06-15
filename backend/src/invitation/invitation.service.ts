@@ -8,10 +8,12 @@ import { InvitationRepository } from './invitation.repository';
 import { InviteStatus } from 'generated/prisma/client';
 import { addDays } from 'date-fns';
 import { User, OrganizationRole } from 'generated/prisma/client';
+import { OrganizationMembershipService } from 'src/organization/organization-membership.service';
 
 @Injectable()
 export class InvitationService {
-    constructor(private readonly invitationRepo: InvitationRepository
+    constructor(private readonly invitationRepo: InvitationRepository,
+        private readonly membershipService: OrganizationMembershipService
     ) { }
 
     async createInvitationForOrg(
@@ -20,7 +22,7 @@ export class InvitationService {
         email: string,
         role = OrganizationRole.member,
     ) {
-        const membership = await this.invitationRepo.findMembershipForUserInOrg(
+        const membership = await this.membershipService.isUserMemberOfOrg(
             orgId,
             inviterUserId,
         );

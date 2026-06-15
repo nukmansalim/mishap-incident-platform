@@ -7,12 +7,6 @@ import { User, OrganizationRole } from 'generated/prisma/client';
 export class InvitationRepository {
     constructor(private readonly prisma: PrismaService) { }
 
-    async findMembershipForUserInOrg(orgId: string, userId: string) {
-        return this.prisma.organizationMember.findFirst({
-            where: { organizationId: orgId, userId },
-        });
-    }
-
     async findByEmailAndOrg(email: string, orgId: string) {
         return this.prisma.invitation.findUnique({
             where: {

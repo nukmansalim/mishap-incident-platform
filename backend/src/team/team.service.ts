@@ -1,10 +1,8 @@
-import { ForbiddenException, NotFoundException, ConflictException, Injectable } from '@nestjs/common';
+import { NotFoundException, ConflictException, Injectable } from '@nestjs/common';
 import { TeamRepository } from './team.repository';
 import { AuthenticatedUser } from 'src/auth/interfaces/authenticated-user.interface';
-import { OrganizationRepository } from 'src/organization/organization.repository';
 import { AddTeamMemberDto, CreateTeamDto, UpdateTeamDto, UpdateTeamMemberRoleDto } from './dto';
 import { OrganizationMembershipService } from 'src/organization/organization-membership.service';
-
 @Injectable()
 export class TeamService {
     constructor(private readonly teamRepository: TeamRepository,

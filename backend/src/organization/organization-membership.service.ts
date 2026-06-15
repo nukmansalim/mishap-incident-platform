@@ -7,6 +7,14 @@ import { PrismaService } from "src/prisma/prisma.service";
 export class OrganizationMembershipService {
 
     constructor(private prisma: PrismaService) { }
+    async isUserMemberOfOrg(userId: string, orgId: string) {
+        const membership = await this.prisma.organizationMember.findUnique({
+            where: {
+                organizationId_userId: { organizationId: orgId, userId },
+            },
+        });
+        return membership;
+    }
     async ensureUserIsMemberOfOrg(userId: string, orgId: string) {
         const membership = await this.prisma.organizationMember.findUnique({
             where: {
