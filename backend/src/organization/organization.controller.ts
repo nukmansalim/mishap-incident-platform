@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, ParseUUIDPipe, UseGuards, Param } from '@nestjs/common';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
+import { JwtAuthGuard } from 'src/common/guards';
 import { OrganizationService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
 import { CurrentUser } from 'src/common/decorators/current-user';

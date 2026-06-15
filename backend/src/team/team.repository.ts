@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { TeamRole, TeamStatus } from 'generated/prisma/enums';
-import { CreateTeamDto } from './dto/create-team.dto';
-import { UpdateTeamDto } from './dto/update-team.dto';
-
+import { CreateTeamDto, UpdateTeamDto } from './dto';
 @Injectable()
 export class TeamRepository {
     constructor(private readonly prisma: PrismaService) { }

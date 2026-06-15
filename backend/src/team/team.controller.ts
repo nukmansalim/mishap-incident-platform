@@ -1,13 +1,8 @@
 import { Controller, Post, Get, Patch, Delete, Param, UseGuards, ParseUUIDPipe, Body } from '@nestjs/common';
 import { AuthenticatedUser } from 'src/auth/interfaces/authenticated-user.interface';
-import { CurrentUser } from 'src/common/decorators/current-user';
-import { UpdateTeamDto } from './dto/update-team.dto';
-import { UpdateTeamMemberRoleDto } from './dto/update-team-member-role.dto';
-import { AddTeamMemberDto } from './dto/add-team-member.dto';
-import { JwtAuthGuard } from 'src/common/guards/jwt-auth.guard';
-import { CreateTeamDto } from './dto/create-team.dto';
-import { OrgRoleGuard } from 'src/common/guards/org-roles.guard';
-import { OrgRoles } from 'src/common/decorators/org-role';
+import { CurrentUser, OrgRoles } from 'src/common/decorators';
+import { AddTeamMemberDto, CreateTeamDto, UpdateTeamDto, UpdateTeamMemberRoleDto } from './dto';
+import { JwtAuthGuard, OrgRoleGuard } from 'src/common/guards';
 import { TeamService } from './team.service';
 
 @Controller('organizations/:orgId/teams')
