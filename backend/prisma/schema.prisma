@@ -30,6 +30,7 @@ model User {
   teamMembers         TeamMember[]
   invitations         Invitation[]
   sentInvitations     Invitation[]         @relation("SentInvitations")
+  createdClients      Client[]
 
   @@map("users")
 }
@@ -46,6 +47,7 @@ model Organization {
   members     OrganizationMember[]
   teams       Team[]
   invitations Invitation[]
+  clients     Client[]
 
   @@map("organizations")
 }
@@ -138,6 +140,46 @@ model TeamMember {
   @@index([teamId])
   @@index([userId])
   @@map("team_members")
+}
+
+model Client {
+  id             String @id @default(uuid())
+  organizationId String @map("organization_id")
+
+  name        String
+  slug        String
+  type        ClientType   @default(client)
+  status      ClientStatus @default(active)
+  description String?
+
+  primaryContactName  String? @map("primary_contact_name")
+  primaryContactEmail String? @map("primary_contact_email")
+  metadata            Json?
+
+  createdById String?  @map("created_by_id")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@unique([organizationId, slug])
+  @@unique([organizationId, name])
+  @@index([organizationId, status])
+  @@index([organizationId, type])
+  @@map("clients")
+}
+
+enum ClientType {
+  client
+  project
+  department
+}
+
+enum ClientStatus {
+  active
+  inactive
+  archived
 }
 
 enum UserStatus {

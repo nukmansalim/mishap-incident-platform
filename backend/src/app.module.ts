@@ -7,6 +7,7 @@ import { ConfigModule } from '@nestjs/config';
 import { OrganizationModule } from './organization/organization.module';
 import { InvitationModule } from './invitation/invitation.module';
 import { TeamModule } from './team/team.module';
+import { ClientModule } from './client/client.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { TeamModule } from './team/team.module';
     OrganizationModule,
     InvitationModule,
     TeamModule,
+    ClientModule,
   ],
   controllers: [AppController],
   providers: [AppService],
