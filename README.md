@@ -2,7 +2,7 @@
 
 Mishap is a backend-heavy incident management and on-call platform inspired by systems such as PagerDuty. The platform is designed to receive alerts from external monitoring systems, normalize them, deduplicate them, create incidents, route incidents to the correct responder, run escalation policies, and preserve a complete operational history.
 
-At the current development checkpoint, the project is structured as a monorepo consisting of a NestJS backend and a React (Vite) frontend. The completed scope covers core authentication (Local and GitHub OAuth), multi-tenant organization modeling, and the organization invitation flow.
+At the current development checkpoint, the project is structured as a monorepo consisting of a NestJS backend and a React (Vite) frontend. The completed scope covers core authentication (Local and GitHub OAuth), multi-tenant organization modeling, organization invitation flow, and team management with role-based access control.
 
 ***
 
@@ -36,6 +36,7 @@ Current completed scope:
 *   **Phase 1**: Local Authentication (register/login) & GitHub OAuth Login + User Persistence + JWT Auth.
 *   **Phase 2**: Multi-tenant Organization Registration (create organization, automatically assigning the creator as `owner`).
 *   **Phase 3**: Organization Invitation Flow (create invitation, validate token, accept invitation).
+*   **Phase 4**: Team & Membership Management (create/update/delete teams, add/remove/modify team members and assign role-based access controls within a team context).
 
 ### Implemented Backend Features:
 *   **Authentication Modules**:
@@ -49,6 +50,10 @@ Current completed scope:
     *   `POST /organizations/:orgId/invitations`: Allows owners/managers to invite members by email (using `upsert` to create or reset pending invites with a secure unique token).
     *   `GET /organizations/:orgId/invitations/:token`: Public token verification (handles checks for existence, expiration, and status updates).
     *   `POST /organizations/:orgId/invitations/:token/accept`: Connects authenticated users to the invited organization in a database transaction, verifying emails and checking for duplicate memberships.
+*   **Team Management & Role-Based Access Control**:
+    *   **Team CRUD**: Allows owners/managers to create, view, edit, and delete (soft-delete status update) teams within an organization.
+    *   **Team Membership**: Allows adding organization members to a team with roles (`manager`, `responder`, `viewer`), listing team members, updating their roles, or removing them.
+    *   **Custom Guards and Decorators**: Employs `@OrgRoles` and custom interceptors/guards (`OrgRoleGuard`) to restrict modification capabilities to authorized organization roles (e.g. owners or managers).
 
 ### Implemented Frontend Features:
 *   **React + Vite Single-Page Application (SPA)**:
@@ -63,12 +68,12 @@ Current completed scope:
 mishap-incident-platform/
 ├── backend/                  # NestJS backend application
 │   ├── src/
-│   │   ├── auth/            # Auth controllers, services, guards, and passport strategies
+│   │   ���── auth/            # Auth controllers, services, guards, and passport strategies
 │   │   ├── organization/    # Organization controllers, services, and repositories
 │   │   ├── invitation/      # Invitation controllers, services, and repositories
+│   │   ├── team/            # Team controllers, services, and repositories
+│   │   ├── common/          # Custom guards, decorators, and shared DTOs
 │   │   ├── prisma/          # Prisma database module and service
-│   │   ├── dto/             # Data Transfer Objects for validation
-│   │   ├── decorators/      # Custom request and user decorators
 │   │   ├── app.module.ts
 │   │   └── main.ts
 │   ├── prisma/              # Prisma database schema and migrations
@@ -164,8 +169,20 @@ npm run dev
 ### Organizations
 *   `POST /organizations`: Creates a new organization (JWT required).
 *   `GET /organizations`: Returns organizations the user belongs to (JWT required).
+*   `GET /organizations/:orgId/members`: Lists all members of a given organization (JWT required).
 
 ### Invitations
-*   `POST /organizations/:orgId/invitations`: Invites a user via email (JWT required, restricted to org owner/admin).
+*   `POST /organizations/:orgId/invitations`: Invites a user via email (JWT required, restricted to org owner/manager).
 *   `GET /organizations/:orgId/invitations/:token`: Publicly checks if invitation token is valid (status is pending and not expired).
 *   `POST /organizations/:orgId/invitations/:token/accept`: Accepts invitation and assigns role (JWT required).
+
+### Teams
+*   `POST /organizations/:orgId/teams`: Creates a new team (JWT required, restricted to org owner/manager).
+*   `GET /organizations/:orgId/teams`: Lists all active teams in the organization (JWT required).
+*   `GET /organizations/:orgId/teams/:teamId`: Gets specific team details (JWT required).
+*   `PATCH /organizations/:orgId/teams/:teamId`: Updates team name/description (JWT required, restricted to org owner/manager).
+*   `DELETE /organizations/:orgId/teams/:teamId`: Soft-deletes a team by setting status to inactive (JWT required, restricted to org owner/manager).
+*   `POST /organizations/:orgId/teams/:teamId/members`: Adds an organization user to the team (JWT required, restricted to org owner/manager).
+*   `GET /organizations/:orgId/teams/:teamId/members`: Lists all members of a team (JWT required).
+*   `PATCH /organizations/:orgId/teams/:teamId/members/:userId`: Updates a member's role within the team (JWT required, restricted to org owner/manager).
+*   `DELETE /organizations/:orgId/teams/:teamId/members/:userId`: Removes a member from the team (JWT required, restricted to org owner/manager).
