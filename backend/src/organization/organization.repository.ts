@@ -25,6 +25,11 @@ export class OrganizationRepository {
             return { organization, membership };
         });
     }
+    async findOrgByOrgId(orgId: string) {
+        return this.prisma.organization.findFirst({
+            where: { id: orgId }
+        })
+    }
     async findOrgByUserId(userId: string) {
 
         const findOrganizations = await this.prisma.organizationMember.findMany({
