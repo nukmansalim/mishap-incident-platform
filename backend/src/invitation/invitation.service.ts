@@ -31,9 +31,9 @@ export class InvitationService {
             throw new NotFoundException('Organization not found or not a member');
         }
 
-        if (!['owner', 'admin'].includes(membership.role)) {
+        if (!['owner', 'manager'].includes(membership.role)) {
             throw new ForbiddenException(
-                'Only owner/admin can invite members to this organization',
+                'Only owner/manager can invite members to this organization',
             );
         }
 

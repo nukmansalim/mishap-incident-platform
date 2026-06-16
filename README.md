@@ -1,66 +1,74 @@
 # Mishap Incident Platform
 
-Mishap is a backend-heavy incident management and on-call platform inspired by systems such as PagerDuty. The platform is designed to receive alerts from external monitoring systems, normalize them, deduplicate them, create incidents, route incidents to the correct responder, run escalation policies, and preserve a complete operational history.
+Mishap is a client-aware service operations and incident workflow platform designed specifically for software houses, Managed Service Providers (MSPs), and IT teams. Instead of building a complex, heavy PagerDuty-like infrastructure alert router, Mishap focuses on connecting service monitoring, clear incident ownership, simple escalations, and client transparency through Status Pages and reporting.
 
-At the current development checkpoint, the project is structured as a monorepo consisting of a NestJS backend and a React (Vite) frontend. The completed scope covers core authentication (Local and GitHub OAuth), multi-tenant organization modeling, organization invitation flow, and team management with role-based access control.
+At the current development checkpoint, the project is structured as a monorepo consisting of a NestJS backend and a React (Vite) frontend. The completed scope covers core authentication, multi-tenant organizations, invitations, team routing, and client/project management.
 
-***
+---
 
-## Project Goal
+## The MVP Pivot & Scope Strategy
+We have repositioned the platform from a generic "on-call/alert-heavy rotation engine" to a **Client-Aware Incident Workflow Tool**. 
 
-The goal is to build an event-driven incident response engine.
+### 1. Unified Domain Reframing
+Our core focus revolves around the relationship: **Client/Project → Service → Incident**.
+* **Organization:** The root tenant workspace.
+* **Team:** Groups of responders responsible for services.
+* **Client/Project:** Represents a customer or internal business unit.
+* **Service:** An individual monitored asset (linked to a Client and owned by a Team).
+* **Monitor:** Simple probes (HTTP, SSL, Ping) triggering incidents.
+* **Incident:** The central operational entity.
 
-Core target flow:
+### 2. Streamlining Complex Features
+To maintain a high-quality, focused MVP, we have deferred or simplified advanced infrastructure-heavy features:
+* **Escalations:** Simplified to a static 3-level rule structure (Level 1 Responder $\rightarrow$ Level 2 Team Lead $\rightarrow$ Level 3 Org Owner) instead of complex dynamic graphs.
+* **On-call Schedules:** Complex shift schedules and calendar rotations are hidden/deferred.
+* **Deduplication:** Simplified to a basic fingerprint check (`service_id + active_status`).
+* **Integrations:** Initial notification delivery focuses on Email and Telegram.
 
-```txt
-Monitoring tool sends alert
-→ System validates webhook
-→ Alert is normalized
-→ Deduplication checks existing incidents
-→ Incident is created or updated
-→ Service ownership is detected
-→ Escalation policy is loaded
-→ Current on-call responder is calculated
-→ Notification is sent
-→ If nobody acknowledges, escalation continues
-→ Incident is resolved and closed
-→ Timeline and audit logs are stored
-```
+---
 
-***
+## Tech Stack
+* **Frontend:** React, TypeScript, Vite, Axios
+* **Backend:** NestJS, Passport (Local, JWT, GitHub OAuth)
+* **Database:** PostgreSQL
+* **ORM:** Prisma
+* **Process Manager:** Concurrently
 
-## Current Checkpoint
+---
 
-Current completed scope:
+## Current Checkpoint & Progress
 
-*   **Phase 1**: Local Authentication (register/login) & GitHub OAuth Login + User Persistence + JWT Auth.
-*   **Phase 2**: Multi-tenant Organization Registration (create organization, automatically assigning the creator as `owner`).
-*   **Phase 3**: Organization Invitation Flow (create invitation, validate token, accept invitation).
-*   **Phase 4**: Team & Membership Management (create/update/delete teams, add/remove/modify team members and assign role-based access controls within a team context).
+### Completed Scope
+* **Phase 1: Authentication**
+  * Local registration and bcrypt password hashing.
+  * GitHub OAuth integration.
+  * JWT generation (15-minute access token) and extraction guards.
+* **Phase 2: Multi-Tenant Organizations**
+  * Creating organizations with automatic `owner` membership assignment.
+  * Fetching organization details and tenant context isolation.
+* **Phase 3: Organization Invitation Flow**
+  * Sending organization invitations to emails.
+  * Securing and validating invitation tokens (status, expiry checks).
+  * Accepting invitations via transactions that auto-join the user to the organization.
+* **Phase 4: Team & Membership Management**
+  * CRUD operations for teams within an organization.
+  * Team members assignment with team roles (`manager`, `responder`, `viewer`).
+  * Custom `OrgRoleGuard` and `@OrgRoles` decorators for authorization checks.
+* **Phase 5: Client / Project Management**
+  * CRUD endpoints for Clients/Projects mapped to organizations.
+  * Custom properties support (metadata JSON, contact details, status, type).
+  * Soft-delete/archiving mechanism.
 
-### Implemented Backend Features:
-*   **Authentication Modules**:
-    *   **Local Auth**: Registers users via `POST /auth/register` (hashing passwords with bcrypt) and authenticates them via `POST /auth/login` (using passport-local).
-    *   **GitHub OAuth**: Integrates passport-github2 via `GET /auth/github` and `GET /auth/github/callback` to validate profiles and persist them in PostgreSQL.
-    *   **JWT Issuance**: Generates signed JWTs containing user `sub` (ID) and `email` payload after successful Local or GitHub login.
-*   **Organization Management**:
-    *   `POST /organizations`: Creates a new organization and records membership as `owner`.
-    *   `GET /organizations`: Lists all organizations a user is associated with.
-*   **Invitation System**:
-    *   `POST /organizations/:orgId/invitations`: Allows owners/managers to invite members by email (using `upsert` to create or reset pending invites with a secure unique token).
-    *   `GET /organizations/:orgId/invitations/:token`: Public token verification (handles checks for existence, expiration, and status updates).
-    *   `POST /organizations/:orgId/invitations/:token/accept`: Connects authenticated users to the invited organization in a database transaction, verifying emails and checking for duplicate memberships.
-*   **Team Management & Role-Based Access Control**:
-    *   **Team CRUD**: Allows owners/managers to create, view, edit, and delete (soft-delete status update) teams within an organization.
-    *   **Team Membership**: Allows adding organization members to a team with roles (`manager`, `responder`, `viewer`), listing team members, updating their roles, or removing them.
-    *   **Custom Guards and Decorators**: Employs `@OrgRoles` and custom interceptors/guards (`OrgRoleGuard`) to restrict modification capabilities to authorized organization roles (e.g. owners or managers).
+### Upcoming Roadmap (Next Steps)
+1. **Services & Monitors:** Implement `Service` modeling (linking Client and Team) and basic `Monitor` checks.
+2. **Simple Incidents Lifecycle:** Implement incident creation, state transition, and assignment logic.
+3. **Escalations & Alerts Engine:** Create static escalation steps and basic deduplication.
+4. **Notifications:** Email & Telegram webhook integrations.
+5. **Runbooks:** Simple markdown runbook templates per service/incident type.
+6. **Status Pages:** Public-facing status pages for client visibility.
+7. **Reports:** Summary reports of uptime and incidents resolved.
 
-### Implemented Frontend Features:
-*   **React + Vite Single-Page Application (SPA)**:
-    *   Scaffolded in the `/ui` directory.
-    *   Includes a connection test utility that sends requests to `/api/` (NestJS hello endpoint) to verify CORS and backend integration.
-
-***
+---
 
 ## Repository Structure
 
@@ -68,10 +76,11 @@ Current completed scope:
 mishap-incident-platform/
 ├── backend/                  # NestJS backend application
 │   ├── src/
-│   │   ���── auth/            # Auth controllers, services, guards, and passport strategies
+│   │   ├── auth/            # Auth controllers, services, guards, and passport strategies
 │   │   ├── organization/    # Organization controllers, services, and repositories
 │   │   ├── invitation/      # Invitation controllers, services, and repositories
 │   │   ├── team/            # Team controllers, services, and repositories
+│   │   ├── client/          # Client controllers, services, and repositories
 │   │   ├── common/          # Custom guards, decorators, and shared DTOs
 │   │   ├── prisma/          # Prisma database module and service
 │   │   ├── app.module.ts
@@ -90,23 +99,13 @@ mishap-incident-platform/
 └── README.md
 ```
 
-***
-
-## Tech Stack
-
-*   **Frontend**: React, TypeScript, Vite, Axios
-*   **Backend**: NestJS, Passport (Local, JWT, GitHub OAuth)
-*   **Database**: PostgreSQL
-*   **ORM**: Prisma
-*   **Process Manager**: Concurrently (for monorepo dev runner)
-
-***
+---
 
 ## Getting Started
 
 ### Prerequisites
-*   Node.js (v18+)
-*   PostgreSQL running locally
+* Node.js (v18+)
+* PostgreSQL running locally
 
 ### Monorepo Setup
 
@@ -153,36 +152,5 @@ From the root directory, run both the backend and frontend concurrently:
 npm run dev
 ```
 
-*   **Backend** runs at: `http://localhost:3000`
-*   **Frontend (UI)** runs at: `http://localhost:5173`
-
-***
-
-## API Endpoint Reference
-
-### Authentication
-*   `POST /auth/register`: Local registration (expects `email`, `password`, `name`).
-*   `POST /auth/login`: Local login (expects `email`, `password`).
-*   `GET /auth/github`: Initiates GitHub OAuth handshake.
-*   `GET /auth/github/callback`: Receives OAuth callback and returns JWT `accessToken` along with safe user profile.
-
-### Organizations
-*   `POST /organizations`: Creates a new organization (JWT required).
-*   `GET /organizations`: Returns organizations the user belongs to (JWT required).
-*   `GET /organizations/:orgId/members`: Lists all members of a given organization (JWT required).
-
-### Invitations
-*   `POST /organizations/:orgId/invitations`: Invites a user via email (JWT required, restricted to org owner/manager).
-*   `GET /organizations/:orgId/invitations/:token`: Publicly checks if invitation token is valid (status is pending and not expired).
-*   `POST /organizations/:orgId/invitations/:token/accept`: Accepts invitation and assigns role (JWT required).
-
-### Teams
-*   `POST /organizations/:orgId/teams`: Creates a new team (JWT required, restricted to org owner/manager).
-*   `GET /organizations/:orgId/teams`: Lists all active teams in the organization (JWT required).
-*   `GET /organizations/:orgId/teams/:teamId`: Gets specific team details (JWT required).
-*   `PATCH /organizations/:orgId/teams/:teamId`: Updates team name/description (JWT required, restricted to org owner/manager).
-*   `DELETE /organizations/:orgId/teams/:teamId`: Soft-deletes a team by setting status to inactive (JWT required, restricted to org owner/manager).
-*   `POST /organizations/:orgId/teams/:teamId/members`: Adds an organization user to the team (JWT required, restricted to org owner/manager).
-*   `GET /organizations/:orgId/teams/:teamId/members`: Lists all members of a team (JWT required).
-*   `PATCH /organizations/:orgId/teams/:teamId/members/:userId`: Updates a member's role within the team (JWT required, restricted to org owner/manager).
-*   `DELETE /organizations/:orgId/teams/:teamId/members/:userId`: Removes a member from the team (JWT required, restricted to org owner/manager).
+* **Backend** runs at: `http://localhost:3000`
+* **Frontend (UI)** runs at: `http://localhost:5173`
