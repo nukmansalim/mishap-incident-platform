@@ -9,6 +9,12 @@ export type ProbeOutcome = {
     errorMessage?: string | null;
 }
 
+export type EvaluationCounters = {
+    consecutiveFailures: number;
+    consecutiveSuccesses: number;
+    consecutiveLatencyBreaches: number;
+}
+
 export type IncidentDecision = {
     type: IncidentType;
     severity: IncidentSeverity;
