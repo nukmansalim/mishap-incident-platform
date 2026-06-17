@@ -12,82 +12,88 @@ export class TeamController {
     @Post()
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
-    async createTeam(@CurrentUser() user: AuthenticatedUser,
+    async createTeam(
         @Param('orgId', new ParseUUIDPipe()) orgId: string,
         @Body() dto: CreateTeamDto) {
-        return this.teamService.createTeam(user, orgId, dto)
+        return this.teamService.createTeam(orgId, dto)
 
     }
 
     @Get()
-    async findTeamsByOrg(@CurrentUser() user: AuthenticatedUser,
+    @UseGuards(OrgRoleGuard)
+    @OrgRoles('owner', 'manager', 'member')
+    async findTeamsByOrg(
         @Param('orgId', new ParseUUIDPipe()) orgId: string) {
-        return this.teamService.getTeamsbyOrg(user, orgId);
+        return this.teamService.getTeamsbyOrg(orgId);
     }
 
     @Get(':teamId')
-    async getTeamDetails(@CurrentUser() user: AuthenticatedUser,
+    @UseGuards(OrgRoleGuard)
+    @OrgRoles('owner', 'manager', 'member')
+    async getTeamDetails(
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string
     ) {
-        return this.teamService.getTeamDetails(user, teamId, orgId);
+        return this.teamService.getTeamDetails(teamId, orgId);
     }
 
     @Patch(':teamId')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
-    async updateTeam(@CurrentUser() user: AuthenticatedUser,
+    async updateTeam(
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string,
         @Body() data: UpdateTeamDto) {
-        return this.teamService.updateTeam(user, teamId, orgId, data);
+        return this.teamService.updateTeam(teamId, orgId, data);
     }
 
     @Delete(':teamId')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
-    async deleteTeam(@CurrentUser() user: AuthenticatedUser,
+    async deleteTeam(
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string) {
-        return this.teamService.deleteTeam(user, teamId, orgId);
+        return this.teamService.deleteTeam(teamId, orgId);
     }
 
     @Post(':teamId/members')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
-    async addMemberIntoTeam(@CurrentUser() actor: AuthenticatedUser,
+    async addMemberIntoTeam(
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string,
         @Body() data: AddTeamMemberDto) {
-        return this.teamService.addMemberIntoTeam(actor, teamId, orgId, data);
+        return this.teamService.addMemberIntoTeam(teamId, orgId, data);
     }
 
     @Get(':teamId/members')
-    async getMembers(@CurrentUser() actor: AuthenticatedUser,
+    @UseGuards(OrgRoleGuard)
+    @OrgRoles('owner', 'manager', 'member')
+    async getMembers(
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('orgId', new ParseUUIDPipe()) orgId: string) {
-        return this.teamService.getMembers(actor, teamId, orgId);
+        return this.teamService.getMembers(teamId, orgId);
     }
 
     @Patch(':teamId/members/:userId')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
-    async updateMemberRole(@CurrentUser() actor: AuthenticatedUser,
+    async updateMemberRole(
         @Param('orgId', new ParseUUIDPipe()) orgId: string,
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('userId', new ParseUUIDPipe()) targetUserId: string,
         @Body() dto: UpdateTeamMemberRoleDto) {
-        return this.teamService.updateMemberRole(actor, orgId, teamId, targetUserId, dto);
+        return this.teamService.updateMemberRole(orgId, teamId, targetUserId, dto);
     }
 
     @Delete(':teamId/members/:userId')
     @UseGuards(OrgRoleGuard)
     @OrgRoles('owner', 'manager')
-    async removeMemberFromTeam(@CurrentUser() actor: AuthenticatedUser,
+    async removeMemberFromTeam(
         @Param('orgId', new ParseUUIDPipe()) orgId: string,
         @Param('teamId', new ParseUUIDPipe()) teamId: string,
         @Param('userId', new ParseUUIDPipe()) targetUserId: string,
     ) {
-        return this.teamService.removeMemberFromTeam(actor, orgId, teamId, targetUserId);
+        return this.teamService.removeMemberFromTeam(orgId, teamId, targetUserId);
     }
 }

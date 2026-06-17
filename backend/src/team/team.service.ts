@@ -18,42 +18,35 @@ export class TeamService {
         return team;
     }
 
-    async createTeam(user: AuthenticatedUser, orgId: string, dto: CreateTeamDto) {
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, user.id)
+    async createTeam(orgId: string, dto: CreateTeamDto) {
         return this.teamRepository.createTeam(orgId, dto)
     }
 
-    async getTeamsbyOrg(user: AuthenticatedUser, orgId: string) {
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, user.id)
+    async getTeamsbyOrg(orgId: string) {
         return this.teamRepository.findAllByOrg(orgId)
     }
 
-    async getTeamDetails(user: AuthenticatedUser, teamId: string, orgId: string) {
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, user.id)
+    async getTeamDetails(teamId: string, orgId: string) {
         return this.ensureTeamInOrg(teamId, orgId);
-
     }
 
-    async updateTeam(user: AuthenticatedUser, teamId: string, orgId: string, dto: UpdateTeamDto) {
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, user.id)
+    async updateTeam(teamId: string, orgId: string, dto: UpdateTeamDto) {
         await this.ensureTeamInOrg(teamId, orgId);
         return this.teamRepository.updateTeam(teamId, dto)
     }
 
-    async deleteTeam(user: AuthenticatedUser, teamId: string, orgId: string) {
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, user.id)
+    async deleteTeam(teamId: string, orgId: string) {
         await this.ensureTeamInOrg(teamId, orgId);
         return this.teamRepository.deleteTeam(teamId)
     }
 
     async addMemberIntoTeam(
-        actor: AuthenticatedUser,
+
         teamId: string,
         orgId: string,
         dto: AddTeamMemberDto,
     ) {
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, actor.id);
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, dto.userId);
+        await this.MembershipService.ensureUserIsMemberOfOrg(dto.userId, orgId);
         await this.ensureTeamInOrg(teamId, orgId);
 
         const isTargetTeamMember = await this.teamRepository.findMember(teamId, dto.userId);
@@ -64,18 +57,16 @@ export class TeamService {
 
         return this.teamRepository.addMember(teamId, dto.userId, dto.role);
     }
-    async getMembers(user: AuthenticatedUser, teamId: string, orgId: string) {
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, user.id)
+    async getMembers(teamId: string, orgId: string) {
         await this.ensureTeamInOrg(teamId, orgId);
         return this.teamRepository.getMembers(teamId)
     }
-    async updateMemberRole(actor: AuthenticatedUser,
+    async updateMemberRole(
         orgId: string,
         teamId: string,
         targetUserId: string,
         dto: UpdateTeamMemberRoleDto) {
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, actor.id);
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, targetUserId);
+        await this.MembershipService.ensureUserIsMemberOfOrg(targetUserId, orgId);
         await this.ensureTeamInOrg(teamId, orgId);
 
         const isTargetTeamMember = await this.teamRepository.findMember(teamId, targetUserId);
@@ -85,12 +76,11 @@ export class TeamService {
         }
         return this.teamRepository.updateMemberRole(teamId, targetUserId, dto.role)
     }
-    async removeMemberFromTeam(actor: AuthenticatedUser,
+    async removeMemberFromTeam(
         orgId: string,
         teamId: string,
         targetUserId: string) {
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, actor.id);
-        await this.MembershipService.ensureUserIsMemberOfOrg(orgId, targetUserId);
+        await this.MembershipService.ensureUserIsMemberOfOrg(targetUserId, orgId);
         await this.ensureTeamInOrg(teamId, orgId);
 
         const isTargetTeamMember = await this.teamRepository.findMember(teamId, targetUserId);
