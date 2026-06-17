@@ -44,10 +44,12 @@ model Organization {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  members     OrganizationMember[]
-  teams       Team[]
-  invitations Invitation[]
-  clients     Client[]
+  members           OrganizationMember[]
+  teams             Team[]
+  invitations       Invitation[]
+  clients           Client[]
+  monitoredServices MonitoredService[]
+  monitors          Monitor[]
 
   @@map("organizations")
 }
@@ -119,6 +121,7 @@ model Team {
   // nanti kalau sudah bikin model Service dan Schedule:
   // services    Service[]
   // schedules   Schedule[]
+  monitoredServices MonitoredService[]
 
   @@index([organizationId])
   @@map("teams")
@@ -162,12 +165,123 @@ model Client {
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   createdBy    User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  monitor      Monitor?     @relation(fields: [monitorId], references: [id])
+  monitorId    String?
 
   @@unique([organizationId, slug])
   @@unique([organizationId, name])
   @@index([organizationId, status])
   @@index([organizationId, type])
   @@map("clients")
+}
+
+model MonitoredService {
+  id          String  @id @default(uuid())
+  name        String  @db.VarChar(120)
+  description String? @db.VarChar(500)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  teamId String?
+  team   Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
+
+  monitors Monitor[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([teamId])
+}
+
+model Monitor {
+  id              String        @id @default(uuid())
+  name            String        @db.VarChar(120)
+  type            MonitorType
+  endpoint        String        @db.VarChar(255)
+  intervalSeconds Int           @default(60)
+  status          MonitorStatus @default(PAUSED)
+
+  consecutiveFailures        Int @default(0)
+  consecutiveSuccesses       Int @default(0)
+  consecutiveLatencyBreaches Int @default(0)
+
+  monitoredServiceId String
+  monitoredService   MonitoredService @relation(fields: [monitoredServiceId], references: [id], onDelete: Cascade)
+
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  clients          Client[]
+  incidents        Incident[]
+  monitorEvents    MonitorEvent[]
+  monitorCheckLogs MonitorCheckLog[]
+
+  @@index([organizationId])
+  @@index([monitoredServiceId])
+}
+
+model Incident {
+  id          String           @id @default(uuid())
+  title       String
+  description String?
+  status      IncidentStatus   @default(OPEN)
+  type        IncidentType
+  severity    IncidentSeverity
+
+  monitorId String
+  monitor   Monitor @relation(fields: [monitorId], references: [id])
+
+  openedAt       DateTime  @default(now())
+  acknowledgedAt DateTime?
+  resolvedAt     DateTime?
+
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  monitorEvents MonitorEvent[]
+
+  @@index([monitorId, status])
+  @@index([type, status])
+}
+
+model MonitorEvent {
+  id        String  @id @default(uuid())
+  monitorId String
+  monitor   Monitor @relation(fields: [monitorId], references: [id])
+
+  eventType  MonitorEventType
+  fromStatus MonitorStatus?
+  toStatus   MonitorStatus?
+  message    String?
+
+  incidentId String?
+  incident   Incident? @relation(fields: [incidentId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([monitorId, createdAt])
+}
+
+model MonitorCheckLog {
+  id        String  @id @default(uuid())
+  monitorId String
+  monitor   Monitor @relation(fields: [monitorId], references: [id])
+
+  checkedAt     DateTime      @default(now())
+  success       Boolean
+  derivedStatus MonitorStatus
+
+  latencyMs        Int?
+  httpStatus       Int?
+  sslDaysRemaining Int?
+  errorMessage     String?
+
+  createdAt DateTime @default(now())
+
+  @@index([monitorId, checkedAt])
 }
 
 enum ClientType {
@@ -208,4 +322,44 @@ enum TeamRole {
   manager
   responder
   viewer
+}
+
+enum MonitorType {
+  HTTP
+  SSL
+  PING
+}
+
+enum MonitorStatus {
+  UP
+  DOWN
+  DEGRADED
+  PAUSED
+  MAINTENANCE
+}
+
+enum IncidentStatus {
+  OPEN
+  ACKED
+  RESOLVED
+}
+
+enum IncidentType {
+  DOWN
+  HIGH_LATENCY
+  SSL_EXPIRING
+  SSL_INVALID
+}
+
+enum IncidentSeverity {
+  CRITICAL
+  HIGH
+  WARNING
+  INFO
+}
+
+enum MonitorEventType {
+  STATUS_CHANGE
+  INCIDENT_OPENED
+  INCIDENT_RESOLVED
 }
