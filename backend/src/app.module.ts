@@ -9,8 +9,12 @@ import { InvitationModule } from './invitation/invitation.module';
 import { TeamModule } from './team/team.module';
 import { ClientModule } from './client/client.module';
 import { RouterModule } from '@nestjs/core';
+import { ScheduleModule } from '@nestjs/schedule';
+import { MonitorRunnerService } from './monitor/monitor-runner.service';
+import { MonitorModule } from './monitor/monitor.module';
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -18,7 +22,7 @@ import { RouterModule } from '@nestjs/core';
     AuthModule,
     OrganizationModule,
     InvitationModule,
-    TeamModule,
+    TeamModule, MonitorModule,
     ClientModule,
     RouterModule.register([
       { path: 'organization', module: OrganizationModule }

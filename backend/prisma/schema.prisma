@@ -239,7 +239,7 @@ model Incident {
   severity    IncidentSeverity
 
   monitorId String
-  monitor   Monitor @relation(fields: [monitorId], references: [id])
+  monitor   Monitor @relation(fields: [monitorId], references: [id], onDelete: Cascade)
 
   openedAt       DateTime  @default(now())
   acknowledgedAt DateTime?
@@ -256,7 +256,7 @@ model Incident {
 model MonitorEvent {
   id        String  @id @default(uuid())
   monitorId String
-  monitor   Monitor @relation(fields: [monitorId], references: [id])
+  monitor   Monitor @relation(fields: [monitorId], references: [id], onDelete: Cascade)
 
   eventType  MonitorEventType
   fromStatus MonitorStatus?
@@ -274,7 +274,7 @@ model MonitorEvent {
 model MonitorCheckLog {
   id        String  @id @default(uuid())
   monitorId String
-  monitor   Monitor @relation(fields: [monitorId], references: [id])
+  monitor   Monitor @relation(fields: [monitorId], references: [id], onDelete: Cascade)
 
   checkedAt     DateTime      @default(now())
   success       Boolean

@@ -8,10 +8,15 @@ import { DownRule } from "./rules/down.rule";
 import { SslRule } from "./rules/ssl.rule";
 import { LatencyRule } from "./rules/latency.rule";
 
+import { PrismaModule } from "src/prisma/prisma.module";
+import { MonitorRunnerService } from "./monitor-runner.service";
+import { MonitorStateService } from "./monitor-state.service";
+
 @Module({
+    imports: [PrismaModule],
     providers: [MonitorEvaluatorService, MonitorProbeService,
         HttpProbeStrategy, SSLProbeStrategy, PingProbeStrategy,
-        DownRule, SslRule, LatencyRule
+        DownRule, SslRule, LatencyRule, MonitorRunnerService, MonitorStateService
     ],
     exports: [MonitorEvaluatorService, MonitorProbeService]
 })
