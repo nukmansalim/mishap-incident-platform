@@ -160,10 +160,9 @@ model Client {
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  createdBy    User?        @relation(fields: [createdById], references: [id], onDelete: SetNull)
-  monitor      Monitor?     @relation(fields: [monitorId], references: [id])
-  monitorId    String?
+  organization Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdBy    User?              @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  services     MonitoredService[]
 
   @@unique([organizationId, slug])
   @@unique([organizationId, name])
@@ -184,6 +183,7 @@ model MonitoredService {
   team   Team?   @relation(fields: [teamId], references: [id], onDelete: SetNull)
 
   monitors Monitor[]
+  clients  Client[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -221,7 +221,6 @@ model Monitor {
 
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
-  clients          Client[]
   incidents        Incident[]
   monitorEvents    MonitorEvent[]
   monitorCheckLogs MonitorCheckLog[]

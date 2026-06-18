@@ -10,13 +10,14 @@ At the current development checkpoint, the project is structured as a monorepo c
 We have repositioned the platform from a generic "on-call/alert-heavy rotation engine" to a **Client-Aware Incident Workflow Tool**. 
 
 ### 1. Unified Domain Reframing
-Our core focus revolves around the relationship: **Client/Project → Service → Incident**.
+Our core focus revolves around the relationship: **Client/Project ◄──► MonitoredService ──► Monitor ──► Incident**.
+
 * **Organization:** The root tenant workspace.
 * **Team:** Groups of responders responsible for services.
-* **Client/Project:** Represents a customer or internal business unit.
-* **Service:** An individual monitored asset (linked to a Client and owned by a Team).
-* **Monitor:** Simple probes (HTTP, SSL, Ping) triggering incidents.
-* **Incident:** The central operational entity.
+* **Client/Project:** Represents a customer or internal business unit (mapped to one or many `MonitoredService`s).
+* **MonitoredService:** A logical application service (owned by a Team, serving one or many `Client`s).
+* **Monitor:** Simple probes (HTTP, SSL, Ping) tied to a `MonitoredService` that perform technical health checks, measure response times, and log telemetry.
+* **Incident:** The central operational entity triggered by monitor failures.
 
 ### 2. Streamlining Complex Features
 To maintain a high-quality, focused MVP, we have deferred or simplified advanced infrastructure-heavy features:
