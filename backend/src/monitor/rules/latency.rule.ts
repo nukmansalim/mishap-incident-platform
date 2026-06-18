@@ -19,7 +19,6 @@ export class LatencyRule implements IEvaluationRule {
 
             return null;
         }
-        if (counters.consecutiveLatencyBreaches === 0) return null;
         if (counters.consecutiveLatencyBreaches < (monitor.latencyBreachThreshold ?? 1)) return null;
 
         const isCritical = monitor.latencyCriticalMs != null && outcome.latencyMs! >= monitor.latencyCriticalMs;

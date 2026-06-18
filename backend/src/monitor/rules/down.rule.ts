@@ -6,7 +6,6 @@ import { ProbeOutcome, EvaluationCounters } from '../types';
 @Injectable()
 export class DownRule implements IEvaluationRule {
     evaluate(monitor: Monitor, outcome: ProbeOutcome, counters: EvaluationCounters): RuleResult | null {
-        if (outcome.ok) return null;
         if (!outcome.ok) {
             if (counters.consecutiveFailures >= (monitor.failureThreshold ?? 1)) {
                 return {
@@ -38,13 +37,8 @@ export class DownRule implements IEvaluationRule {
             };
         }
 
-
-
-        return {
-            status: MonitorStatus.UP,
-            incident: null,
-            resolves: [],
-        };
+        return null
     }
+
 
 }
