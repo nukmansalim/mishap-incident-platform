@@ -5,7 +5,7 @@ import { AddTeamMemberDto, CreateTeamDto, UpdateTeamDto, UpdateTeamMemberRoleDto
 import { JwtAuthGuard, OrgRoleGuard } from 'src/common/guards';
 import { TeamService } from './team.service';
 
-@Controller('organizations/:orgId/teams')
+@Controller()
 @UseGuards(JwtAuthGuard)
 export class TeamController {
     constructor(private teamService: TeamService) { }

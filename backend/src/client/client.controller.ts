@@ -18,7 +18,7 @@ import { CurrentUser } from 'src/common/decorators';
 
 
 
-@Controller('organizations/:orgId/clients')
+@Controller()
 @UseGuards(JwtAuthGuard, OrgRoleGuard)
 export class ClientController {
     constructor(private readonly clientService: ClientService) { }

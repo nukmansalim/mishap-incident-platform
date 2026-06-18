@@ -14,7 +14,7 @@ import { CreateInvitationDto } from './dto/create-invitation.dto';
 import { OrganizationRole, User } from 'generated/prisma/client';
 import { CurrentUser, OrgRoles } from 'src/common/decorators';
 
-@Controller('organizations/:orgId/invitations')
+@Controller()
 export class InvitationController {
   constructor(private readonly invitationService: InvitationService) { }
 
