@@ -201,6 +201,7 @@ model Monitor {
   status          MonitorStatus @default(PAUSED)
 
   failureThreshold Int @default(3)
+  successThreshold Int @default(3)
 
   latencyWarningMs       Int?
   latencyCriticalMs      Int?

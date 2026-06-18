@@ -6,6 +6,19 @@ import { ProbeOutcome } from '../types';
 @Injectable()
 export class LatencyRule implements IEvaluationRule {
     evaluate(monitor: Monitor, outcome: ProbeOutcome, counters: any): RuleResult | null {
+        if (counters.consecutiveLatencyBreaches === 0) {
+            const successThreshold = monitor.latencyBreachThreshold ?? 1;
+
+            if (counters.consecutiveSuccesses >= successThreshold) {
+                return {
+                    status: MonitorStatus.UP,
+                    incident: null,
+                    resolves: [IncidentType.HIGH_LATENCY],
+                };
+            }
+
+            return null;
+        }
         if (counters.consecutiveLatencyBreaches === 0) return null;
         if (counters.consecutiveLatencyBreaches < (monitor.latencyBreachThreshold ?? 1)) return null;
 

@@ -37,7 +37,7 @@ export class MonitorEvaluatorService {
             finalResult = {
                 status: MonitorStatus.UP,
                 incident: null,
-                resolves: Object.values(IncidentType),
+                resolves: []
             };
         }
 
