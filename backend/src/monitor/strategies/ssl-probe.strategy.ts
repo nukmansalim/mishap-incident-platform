@@ -9,7 +9,7 @@ export class SSLProbeStrategy implements IProbeStrategy {
         {
             return new Promise((resolve) => {
 
-                const url = new URL(monitor.url.startsWith('http') ? monitor.url : `https://${monitor.url}`);
+                const url = new URL(monitor.endpoint.startsWith('http') ? monitor.endpoint : `https://${monitor.endpoint}`);
                 const hostname = url.hostname;
 
                 const socket = tls.connect(

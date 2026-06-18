@@ -9,7 +9,7 @@ export class PingProbeStrategy implements IProbeStrategy {
         return new Promise((resolve) => {
             const startTime = performance.now();
 
-            const [host, portStr] = monitor.url.split(':');
+            const [host, portStr] = monitor.endpoint.split(':');
             const port = parseInt(portStr || '80', 10);
 
             const socket = new net.Socket();

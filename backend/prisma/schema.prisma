@@ -36,9 +36,9 @@ model User {
 }
 
 model Organization {
-  id     String             @id @default(uuid())
-  name   String
-  // slug String @unique
+  id   String @id @default(uuid())
+  name String
+
   status OrganizationStatus @default(active)
 
   createdAt DateTime @default(now()) @map("created_at")
@@ -118,9 +118,6 @@ model Team {
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   members      TeamMember[]
 
-  // nanti kalau sudah bikin model Service dan Schedule:
-  // services    Service[]
-  // schedules   Schedule[]
   monitoredServices MonitoredService[]
 
   @@index([organizationId])
@@ -202,6 +199,15 @@ model Monitor {
   endpoint        String        @db.VarChar(255)
   intervalSeconds Int           @default(60)
   status          MonitorStatus @default(PAUSED)
+
+  failureThreshold Int @default(3)
+
+  latencyWarningMs       Int?
+  latencyCriticalMs      Int?
+  latencyBreachThreshold Int  @default(3)
+
+  sslWarningDays  Int?
+  sslCriticalDays Int?
 
   consecutiveFailures        Int @default(0)
   consecutiveSuccesses       Int @default(0)

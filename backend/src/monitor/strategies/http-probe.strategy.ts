@@ -11,7 +11,7 @@ export class HttpProbeStrategy implements IProbeStrategy {
         const timeout = setTimeout(() => controller.abort(), 10000);
 
         try {
-            const response = await fetch(monitor.url, {
+            const response = await fetch(monitor.endpoint, {
                 method: 'GET',
                 signal: controller.signal,
             });
