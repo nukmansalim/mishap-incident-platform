@@ -10,10 +10,16 @@ import { TeamModule } from './team/team.module';
 import { ClientModule } from './client/client.module';
 import { RouterModule } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
-import { MonitorRunnerService } from './monitor/monitor-runner.service';
 import { MonitorModule } from './monitor/monitor.module';
+import { BullModule } from '@nestjs/bullmq';
 @Module({
   imports: [
+    BullModule.forRoot({
+      connection: {
+        host: 'localhost',
+        port: 6379
+      }
+    }),
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       isGlobal: true,

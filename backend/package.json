@@ -21,6 +21,7 @@
     "test:integration": "dotenv -e .env.test -- npx prisma db push --accept-data-loss && dotenv -e .env.test -- jest --config ./test/jest-integration.json --runInBand"
   },
   "dependencies": {
+    "@nestjs/bullmq": "^11.0.4",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^4.0.4",
     "@nestjs/core": "^10.0.0",
@@ -33,6 +34,7 @@
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "bcrypt": "^6.0.0",
+    "bullmq": "^5.79.0",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "express-session": "^1.19.0",

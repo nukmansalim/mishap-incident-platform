@@ -32,6 +32,7 @@ To maintain a high-quality, focused MVP, we have deferred or simplified advanced
 * **Frontend:** React, TypeScript, Vite, Axios
 * **Backend:** NestJS, Passport (Local, JWT, GitHub OAuth)
 * **Database:** PostgreSQL
+* **Queue/Broker:** Redis (BullMQ)
 * **ORM:** Prisma
 * **Process Manager:** Concurrently
 
@@ -59,15 +60,23 @@ To maintain a high-quality, focused MVP, we have deferred or simplified advanced
   * CRUD endpoints for Clients/Projects mapped to organizations.
   * Custom properties support (metadata JSON, contact details, status, type).
   * Soft-delete/archiving mechanism.
+* **Phase 6: Services & Active Probing Engine**
+  * Model relationships associating Organizations, Teams, Clients, and MonitoredServices.
+  * Extensible polling subsystem with socket/network strategies (`HttpProbeStrategy`, `PingProbeStrategy`, `SSLProbeStrategy`).
+  * Distributed queue-based task scheduling using BullMQ (Redis) to decouple check production from execution.
+  * Configurable warning and critical thresholds for downtime, response latencies, and SSL certificate expiration.
+* **Phase 7: Rule Evaluation & Incident Lifecycle Automation**
+  * Evaluation engine applying multi-rule validators (`DownRule`, `LatencyRule`, `SslRule`).
+  * Flapping and noise mitigation via configurable counters (`failureThreshold`, `successThreshold`, `latencyBreachThreshold`).
+  * Standardized state transition logic writing check telemetry logs (`MonitorCheckLog`).
+  * Automated database transactions that handle opening new `Incident`s and auto-resolving existing ones accompanied by `MonitorEvent` audit trails.
 
 ### Upcoming Roadmap (Next Steps)
-1. **Services & Monitors:** Implement `Service` modeling (linking Client and Team) and basic `Monitor` checks.
-2. **Simple Incidents Lifecycle:** Implement incident creation, state transition, and assignment logic.
-3. **Escalations & Alerts Engine:** Create static escalation steps and basic deduplication.
-4. **Notifications:** Email & Telegram webhook integrations.
-5. **Runbooks:** Simple markdown runbook templates per service/incident type.
-6. **Status Pages:** Public-facing status pages for client visibility.
-7. **Reports:** Summary reports of uptime and incidents resolved.
+1. **Escalations & Alerts Engine:** Create static escalation steps and basic deduplication.
+2. **Notifications:** Email & Telegram webhook integrations.
+3. **Runbooks:** Simple markdown runbook templates per service/incident type.
+4. **Status Pages:** Public-facing status pages for client visibility.
+5. **Reports:** Summary reports of uptime and incidents resolved.
 
 ---
 
@@ -82,6 +91,7 @@ mishap-incident-platform/
 │   │   ├── invitation/      # Invitation controllers, services, and repositories
 │   │   ├── team/            # Team controllers, services, and repositories
 │   │   ├── client/          # Client controllers, services, and repositories
+│   │   ├── monitor/         # Active probing engine, strategies, evaluation rules, and state manager
 │   │   ├── common/          # Custom guards, decorators, and shared DTOs
 │   │   ├── prisma/          # Prisma database module and service
 │   │   ├── app.module.ts
@@ -107,6 +117,7 @@ mishap-incident-platform/
 ### Prerequisites
 * Node.js (v18+)
 * PostgreSQL running locally
+* Redis running locally (port 6379)
 
 ### Monorepo Setup
 

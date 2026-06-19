@@ -9,14 +9,17 @@ import { SslRule } from "./rules/ssl.rule";
 import { LatencyRule } from "./rules/latency.rule";
 
 import { PrismaModule } from "src/prisma/prisma.module";
-import { MonitorRunnerService } from "./monitor-runner.service";
 import { MonitorStateService } from "./monitor-state.service";
+import { BullModule } from "@nestjs/bullmq";
+import { healthQueueConfig } from "./queue/queue.config";
+import { MonitorSchedulerService } from "./producer/monitor-scheduler.service";
+import { MonitorConsumerService } from "./consumer/monitor.consumer.service";
 
 @Module({
-    imports: [PrismaModule],
+    imports: [PrismaModule, BullModule.registerQueue(healthQueueConfig)],
     providers: [MonitorEvaluatorService, MonitorProbeService,
         HttpProbeStrategy, SSLProbeStrategy, PingProbeStrategy,
-        DownRule, SslRule, LatencyRule, MonitorRunnerService, MonitorStateService
+        DownRule, SslRule, LatencyRule, MonitorSchedulerService, MonitorConsumerService, MonitorStateService
     ],
     exports: [MonitorEvaluatorService, MonitorProbeService]
 })
