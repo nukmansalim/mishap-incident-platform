@@ -12,6 +12,7 @@ import { RouterModule } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MonitorModule } from './monitor/monitor.module';
 import { BullModule } from '@nestjs/bullmq';
+import { AlertModule } from './alert/alert.module';
 @Module({
   imports: [
     BullModule.forRootAsync({
@@ -26,6 +27,7 @@ import { BullModule } from '@nestjs/bullmq';
     ConfigModule.forRoot({
       isGlobal: true,
     }),
+    AlertModule,
     PrismaModule,
     AuthModule,
     OrganizationModule,
@@ -36,6 +38,7 @@ import { BullModule } from '@nestjs/bullmq';
     RouterModule.register([
       { path: 'organization', module: OrganizationModule },
     ]),
+    AlertModule,
   ],
   controllers: [AppController],
   providers: [AppService],

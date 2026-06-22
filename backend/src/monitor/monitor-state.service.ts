@@ -18,7 +18,8 @@ export class MonitorStateService {
     evaluation: EvaluationResult,
   ) {
     try {
-      await this.prisma.$transaction(async (tx) => {
+      const result = await this.prisma.$transaction(async (tx) => {
+        let createdIncidentId: string | null = null;
         await tx.monitorCheckLog.create({
           data: {
             monitorId,
@@ -90,7 +91,7 @@ export class MonitorStateService {
                 severity: evaluation.openIncident.severity,
               },
             });
-
+            createdIncidentId = newIncident.id;
             await tx.monitorEvent.create({
               data: {
                 monitorId,
@@ -106,7 +107,9 @@ export class MonitorStateService {
             );
           }
         }
+        return { createdIncidentId };
       });
+      return result;
     } catch (error: any) {
       this.logger.error(
         `Gagal menyimpan state untuk monitor ${monitorId}: ${error.message}`,
