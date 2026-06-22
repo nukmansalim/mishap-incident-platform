@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { PrismaService } from 'src/prisma/prisma.service';
-import * as bcrypt from 'bcrypt'
+import { PrismaService } from '../prisma/prisma.service';
+import * as bcrypt from 'bcrypt';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 @Injectable()
@@ -9,32 +9,34 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) { }
+  ) {}
 
   async register(dto: RegisterDto): Promise<any> {
     const existing = await this.prisma.user.findUnique({
-      where: { email: dto.email }
-    })
+      where: { email: dto.email },
+    });
     if (existing) {
-      throw new BadRequestException('Email sudah Terdaftar')
+      throw new BadRequestException('Email sudah Terdaftar');
     }
 
-    const passwordHash = await bcrypt.hash(dto.password, 10)
+    const passwordHash = await bcrypt.hash(dto.password, 10);
     const user = await this.prisma.user.create({
       data: {
         name: dto.name,
         email: dto.email,
-        passwordHash: passwordHash
-      }
-    })
+        passwordHash: passwordHash,
+      },
+    });
 
-    const payload = { sub: user.id, email: user.email }
-    const accessToken = this.jwtService.sign(payload)
-    const { passwordHash: _, ...safeUser } = user
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = this.jwtService.sign(payload);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { passwordHash: _, ...safeUser } = user;
 
     return {
-      user: safeUser, accessToken
-    }
+      user: safeUser,
+      accessToken,
+    };
   }
 
   async validateUser(email: string, password: string) {
@@ -46,6 +48,7 @@ export class AuthService {
     const isMatch = await bcrypt.compare(password, user.passwordHash);
     if (!isMatch) return null;
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { passwordHash: _, ...safeUser } = user;
     return safeUser;
   }
@@ -55,7 +58,7 @@ export class AuthService {
     if (!userId) {
       const dbUser = await this.prisma.user.findUnique({
         where: { email: user.email },
-        select: { id: true }
+        select: { id: true },
       });
       if (!dbUser) {
         throw new Error('Kredensial Salah');
@@ -71,7 +74,7 @@ export class AuthService {
         sub: userId,
         email: user.email,
         name: user.name,
-      }
+      },
     };
   }
 
@@ -95,10 +98,14 @@ export class AuthService {
         },
       });
     }
-    console.log(user)
+    console.log(user);
     return user;
   }
-  async generateAccessToken(user: { id?: string; email: string; name?: string }) {
+  async generateAccessToken(user: {
+    id?: string;
+    email: string;
+    name?: string;
+  }) {
     const payload = {
       sub: user.id,
       email: user.email,

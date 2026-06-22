@@ -14,11 +14,13 @@ import { MonitorModule } from './monitor/monitor.module';
 import { BullModule } from '@nestjs/bullmq';
 @Module({
   imports: [
-    BullModule.forRoot({
-      connection: {
-        host: 'localhost',
-        port: 6379
-      }
+    BullModule.forRootAsync({
+      useFactory: () => ({
+        connection: {
+          host: process.env.REDIS_HOST,
+          port: parseInt(process.env.REDIS_PORT),
+        },
+      }),
     }),
     ScheduleModule.forRoot(),
     ConfigModule.forRoot({
@@ -28,14 +30,14 @@ import { BullModule } from '@nestjs/bullmq';
     AuthModule,
     OrganizationModule,
     InvitationModule,
-    TeamModule, MonitorModule,
+    TeamModule,
+    MonitorModule,
     ClientModule,
     RouterModule.register([
-      { path: 'organization', module: OrganizationModule }
-
-    ])
+      { path: 'organization', module: OrganizationModule },
+    ]),
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

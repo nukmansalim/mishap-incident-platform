@@ -4,19 +4,18 @@ import {
   Param,
   Post,
   UseGuards,
-  Request,
   Get,
   HttpCode,
 } from '@nestjs/common';
-import { JwtAuthGuard, OrgRoleGuard } from 'src/common/guards';
+import { JwtAuthGuard, OrgRoleGuard } from '../common/guards';
 import { InvitationService } from './invitation.service';
 import { CreateInvitationDto } from './dto/create-invitation.dto';
-import { OrganizationRole, User } from 'generated/prisma/client';
-import { CurrentUser, OrgRoles } from 'src/common/decorators';
+import { OrganizationRole, User } from '../../generated/prisma/client';
+import { CurrentUser, OrgRoles } from '../common/decorators';
 
 @Controller()
 export class InvitationController {
-  constructor(private readonly invitationService: InvitationService) { }
+  constructor(private readonly invitationService: InvitationService) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, OrgRoleGuard)
@@ -24,9 +23,9 @@ export class InvitationController {
   async create(
     @Param('orgId') orgId: string,
     @Body() body: CreateInvitationDto,
-    @CurrentUser() user: User
+    @CurrentUser() user: User,
   ) {
-    const userId = user.id
+    const userId = user.id;
 
     const invitation = await this.invitationService.createInvitationForOrg(
       orgId,
@@ -48,7 +47,7 @@ export class InvitationController {
   @Get(':token')
   @HttpCode(200)
   validateToken(@Param('token') token: string) {
-    return this.invitationService.validateToken(token)
+    return this.invitationService.validateToken(token);
   }
   @Post(':token/accept')
   @UseGuards(JwtAuthGuard)

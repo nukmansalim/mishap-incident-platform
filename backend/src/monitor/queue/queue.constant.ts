@@ -1,1 +1,1 @@
-export const MONITOR_RUN = 'monitor-run'
+export const MONITOR_RUN = 'monitor-run';

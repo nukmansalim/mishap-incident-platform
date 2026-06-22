@@ -3,7 +3,7 @@ import { InvitationController } from './invitation.controller';
 import { InvitationService } from './invitation.service';
 import { InvitationRepository } from './invitation.repository';
 import { PrismaModule } from '../prisma/prisma.module';
-import { OrganizationModule } from 'src/organization/organization.module';
+import { OrganizationModule } from '../organization/organization.module';
 
 @Module({
   imports: [PrismaModule, OrganizationModule],
@@ -11,4 +11,4 @@ import { OrganizationModule } from 'src/organization/organization.module';
   providers: [InvitationService, InvitationRepository],
   exports: [InvitationService, InvitationRepository],
 })
-export class InvitationModule { }
+export class InvitationModule {}

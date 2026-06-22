@@ -1,2 +1,2 @@
-export * from './current-user'
-export * from './org-role'
+export * from './current-user';
+export * from './org-role';

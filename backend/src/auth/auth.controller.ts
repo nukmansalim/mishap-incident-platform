@@ -8,11 +8,11 @@ import { LocalAuthGuard } from '../common/guards/local-auth.guard';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Get('github')
   @UseGuards(AuthGuard('github'))
-  async githubLogin() { }
+  async githubLogin() {}
 
   @Get('github/callback')
   @UseGuards(AuthGuard('github'))
@@ -28,13 +28,12 @@ export class AuthController {
 
   @Post('register')
   async register(@Body() dto: RegisterDto) {
-    return this.authService.register(dto)
+    return this.authService.register(dto);
   }
 
   @Post('login')
   @UseGuards(LocalAuthGuard)
   async login(@Body() dto: LoginDto) {
-
-    return this.authService.login(dto)
+    return this.authService.login(dto);
   }
 }

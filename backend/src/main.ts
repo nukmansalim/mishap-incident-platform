@@ -4,13 +4,13 @@ import { RequestMethod, ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.enableShutdownHooks()
+  app.enableShutdownHooks();
   app.setGlobalPrefix('api', {
     exclude: [
       { path: 'auth/github', method: RequestMethod.GET },
-      { path: 'auth/github/callback', method: RequestMethod.GET }
-    ]
-  })
+      { path: 'auth/github/callback', method: RequestMethod.GET },
+    ],
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
